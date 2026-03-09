@@ -1,0 +1,90 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=DM+Serif+Display&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 30 18% 95%;
+    --foreground: 20 20% 14%;
+
+    --card: 30 20% 99%;
+    --card-foreground: 20 20% 14%;
+
+    --popover: 30 20% 99%;
+    --popover-foreground: 20 20% 14%;
+
+    --primary: 20 32% 24%;
+    --primary-foreground: 30 18% 95%;
+
+    --secondary: 30 14% 91%;
+    --secondary-foreground: 20 20% 20%;
+
+    --muted: 28 10% 90%;
+    --muted-foreground: 20 8% 50%;
+
+    --accent: 24 45% 36%;
+    --accent-foreground: 30 18% 96%;
+
+    --destructive: 0 60% 50%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 28 12% 86%;
+    --input: 28 12% 86%;
+    --ring: 20 32% 24%;
+
+    --radius: 0.75rem;
+
+    /* Custom */
+    --slot-assembly: 20 32% 24%;
+    --slot-advisory: 24 45% 36%;
+    --slot-class: 30 20% 99%;
+    --slot-lunch: 30 14% 91%;
+
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior: none;
+  }
+
+  h1, h2, h3 {
+    font-family: 'DM Serif Display', serif;
+    letter-spacing: -0.01em;
+  }
+}
+
+/* iOS safe area padding */
+.safe-top {
+  padding-top: var(--safe-top);
+}
+
+.safe-bottom {
+  padding-bottom: var(--safe-bottom);
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Hide scrollbar but keep scrolling */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
