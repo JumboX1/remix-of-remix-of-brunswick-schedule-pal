@@ -40,7 +40,7 @@ export function MorePage() {
       </div>
 
       <p className="mt-auto pt-10 text-center text-[10px] leading-tight text-muted-foreground/60">
-        App developed and managed by Jack Wendell '27.{" "}
+        App maintained by Jack Wendell '27.{" "}
         If there are any problems with the app please contact{" "}
         <a href="mailto:jwendell@brunswickschool.org" className="text-accent/60 underline">
           jwendell@brunswickschool.org
