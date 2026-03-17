@@ -22,10 +22,11 @@ const ROTATION_CYCLE: Block[][] = [
   ["C", "D", "E", "F", "G"],
 ];
 
-// Reference: March 5, 2026 (Thu) = rotation index 0
-// March 6 (Fri) = index 1, then Spring Break is skipped
-// March 23 (Mon) = index 2 → D,E,F,G,A ✓
-const EPOCH = new Date(2026, 2, 5); // March 5, 2026
+// Reference: March 6, 2026 (Fri) = rotation index 0 (A,B,C,D,E)
+// Spring Break is skipped (Mar 7–22)
+// March 23 (Mon) = index 1 → F,G,A,B,C
+// April 27 (Mon) = index 4 → G,A,B,C,D (verified against school calendar)
+const EPOCH = new Date(2026, 2, 6); // March 6, 2026
 
 import { isSchoolDay } from "./schoolCalendar";
 

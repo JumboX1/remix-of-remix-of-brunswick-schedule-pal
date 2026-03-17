@@ -28,9 +28,14 @@ describe("School calendar", () => {
 });
 
 describe("Schedule rotation with calendar", () => {
-  it("March 23, 2026 (Monday) = D,E,F,G,A", () => {
+  it("March 23, 2026 (Monday) = F,G,A,B,C", () => {
     const blocks = getBlocksForDate(new Date(2026, 2, 23));
-    expect(blocks).toEqual(["D", "E", "F", "G", "A"]);
+    expect(blocks).toEqual(["F", "G", "A", "B", "C"]);
+  });
+
+  it("April 27, 2026 (Monday) = G,A,B,C,D", () => {
+    const blocks = getBlocksForDate(new Date(2026, 3, 27));
+    expect(blocks).toEqual(["G", "A", "B", "C", "D"]);
   });
 
   it("Spring Break returns no blocks", () => {
