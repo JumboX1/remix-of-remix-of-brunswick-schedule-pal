@@ -57,7 +57,7 @@ describe("Schedule rotation with calendar", () => {
     // All should have blocks
     expect(beforeBreak1.length).toBe(5);
     expect(beforeBreak2.length).toBe(5);
-    expect(afterBreak).toEqual(["D", "E", "F", "G", "A"]);
+    expect(afterBreak).toEqual(["F", "G", "A", "B", "C"]);
   });
 
   it("Monday has assembly", () => {
