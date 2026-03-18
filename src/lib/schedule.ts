@@ -83,20 +83,21 @@ export function getDaySchedule(
   const slots: ScheduleSlot[] = [];
 
   if (dayOfWeek === 3) {
-    // WEDNESDAY — late start, 50-min classes, no advisory
+    // WEDNESDAY — advisory then late-start 50-min classes
+    slots.push({ label: "Advisory", start: "8:45", end: "9:00", type: "advisory" });
     slots.push({ label: blocks[0], start: "9:10", end: "10:00", type: "class", block: blocks[0] });
     slots.push({ label: blocks[1], start: "10:10", end: "11:00", type: "class", block: blocks[1] });
     slots.push({ label: blocks[2], start: "11:10", end: "12:00", type: "class", block: blocks[2] });
 
     if (classType === "underclassman") {
-      slots.push({ label: "Lunch", start: "12:05", end: "12:30", type: "lunch" });
-      slots.push({ label: blocks[3], start: "12:35", end: "1:25", type: "class", block: blocks[3] });
+      slots.push({ label: blocks[3], start: "12:10", end: "1:00", type: "class", block: blocks[3] });
+      slots.push({ label: "Lunch", start: "1:00", end: "1:25", type: "lunch" });
     } else {
-      slots.push({ label: blocks[3], start: "12:05", end: "12:55", type: "class", block: blocks[3] });
-      slots.push({ label: "Lunch", start: "12:55", end: "1:25", type: "lunch" });
+      slots.push({ label: "Lunch", start: "12:05", end: "12:25", type: "lunch" });
+      slots.push({ label: blocks[3], start: "12:30", end: "1:20", type: "class", block: blocks[3] });
     }
 
-    slots.push({ label: blocks[4], start: "1:35", end: "2:25", type: "class", block: blocks[4] });
+    slots.push({ label: blocks[4], start: "1:30", end: "2:20", type: "class", block: blocks[4] });
   } else if (dayOfWeek === 1) {
     // MONDAY — assembly at start, flex mid-day
     slots.push({ label: "Assembly", start: "7:45", end: "8:00", type: "assembly" });
