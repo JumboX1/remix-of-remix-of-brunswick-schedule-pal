@@ -70,9 +70,11 @@ describe("Schedule rotation with calendar", () => {
     expect(slots[0].type).toBe("assembly");
   });
 
-  it("Wednesday has late start", () => {
+  it("Wednesday has advisory then late start", () => {
     const slots = getDaySchedule(new Date(2026, 2, 25));
-    expect(slots[0].start).toBe("9:10");
+    expect(slots[0].type).toBe("advisory");
+    expect(slots[0].start).toBe("8:45");
+    expect(slots[1].start).toBe("9:10");
   });
 
   it("every school day has 5 class slots", () => {
