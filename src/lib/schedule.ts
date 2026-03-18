@@ -116,10 +116,11 @@ export function getDaySchedule(
 
     slots.push({ label: blocks[4], start: "1:40", end: "2:40", type: "class", block: blocks[4] });
   } else if (dayOfWeek === 5) {
-    // FRIDAY — no advisory
-    slots.push({ label: blocks[0], start: "8:00", end: "9:00", type: "class", block: blocks[0] });
-    slots.push({ label: blocks[1], start: "9:10", end: "10:10", type: "class", block: blocks[1] });
-    slots.push({ label: blocks[2], start: "10:20", end: "11:20", type: "class", block: blocks[2] });
+    // FRIDAY — advisory at start, no flex
+    slots.push({ label: "Advisory", start: "7:45", end: "8:00", type: "advisory" });
+    slots.push({ label: blocks[0], start: "8:10", end: "9:10", type: "class", block: blocks[0] });
+    slots.push({ label: blocks[1], start: "9:20", end: "10:20", type: "class", block: blocks[1] });
+    slots.push({ label: blocks[2], start: "10:30", end: "11:20", type: "class", block: blocks[2] });
 
     if (classType === "underclassman") {
       slots.push({ label: blocks[3], start: "11:30", end: "12:30", type: "class", block: blocks[3] });
