@@ -38,6 +38,11 @@ describe("Schedule rotation with calendar", () => {
     expect(blocks).toEqual(["G", "A", "B", "C", "D"]);
   });
 
+  it("Community Service Day (April 24) is not a school day", () => {
+    expect(isSchoolDay(new Date(2026, 3, 24))).toBe(false);
+    expect(getBlocksForDate(new Date(2026, 3, 24))).toEqual([]);
+  });
+
   it("Spring Break returns no blocks", () => {
     expect(getBlocksForDate(new Date(2026, 2, 10))).toEqual([]);
   });

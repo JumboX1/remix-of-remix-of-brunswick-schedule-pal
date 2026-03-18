@@ -72,6 +72,9 @@ const CALENDAR_DATA: Record<string, SchoolDayInfo> = {
   // --- Good Friday ---
   "2026-04-03": { reason: "Good Friday – No School", type: "holiday" },
 
+  // --- Community Service Day ---
+  "2026-04-24": { reason: "Community Service Day", type: "noschool" },
+
   // --- Memorial Day ---
   "2026-05-25": { reason: "Memorial Day", type: "holiday" },
 
