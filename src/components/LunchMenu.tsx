@@ -199,6 +199,7 @@ export function LunchMenu() {
             <Leaf className="mt-0.5 h-3.5 w-3.5 text-muted-foreground shrink-0" />
             <p className="text-xs text-muted-foreground leading-relaxed">
               Menu sourced from Brunswick dining calendar. Gluten-free items available daily.
+              Allergy meals available — contact Flik staff if you have allergies.
             </p>
           </div>
         </div>
