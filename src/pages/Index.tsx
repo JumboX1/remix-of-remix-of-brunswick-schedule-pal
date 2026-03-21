@@ -18,7 +18,7 @@ export default function SchedulePage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [editOpen, setEditOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<AppTab>("schedule");
-  const { data, updateBlockName, setClassType, setStudentName, setOnboarded, resetAll } = useUserData();
+  const { data, updateBlockName, setClassType, setOnboarded, resetAll } = useUserData();
 
   // Fetch DB calendar overrides on mount
   useEffect(() => {
@@ -76,9 +76,7 @@ export default function SchedulePage() {
 
   const noSchoolInfo = schoolInfo && schoolInfo.type !== "early_dismissal" ? schoolInfo : null;
 
-  const greeting = data.studentName
-    ? `Hey, ${data.studentName}`
-    : noSchoolInfo
+  const greeting = noSchoolInfo
     ? noSchoolInfo.reason
     : isToday
     ? "Today"
@@ -186,7 +184,7 @@ export default function SchedulePage() {
         data={data}
         onUpdateBlockName={updateBlockName}
         onSetClassType={setClassType}
-        onSetStudentName={setStudentName}
+        
         onReset={resetAll}
       />
     </div>

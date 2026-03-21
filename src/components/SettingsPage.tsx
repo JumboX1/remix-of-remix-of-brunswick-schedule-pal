@@ -6,12 +6,11 @@ import { UserScheduleData } from "@/hooks/useUserData";
 interface SettingsPageProps {
   data: UserScheduleData;
   onSetClassType: (type: ClassType) => void;
-  onSetStudentName: (name: string) => void;
   onUpdateBlockName: (block: Block, name: string) => void;
   onReset: () => void;
 }
 
-export function SettingsPage({ data, onSetClassType, onSetStudentName, onUpdateBlockName, onReset }: SettingsPageProps) {
+export function SettingsPage({ data, onSetClassType, onUpdateBlockName, onReset }: SettingsPageProps) {
   const [confirmReset, setConfirmReset] = useState(false);
 
   return (
@@ -22,20 +21,6 @@ export function SettingsPage({ data, onSetClassType, onSetStudentName, onUpdateB
       </header>
 
       <div className="flex-1 overflow-y-auto px-5 pb-24 no-scrollbar space-y-5">
-        {/* Student Name */}
-        <div>
-          <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Your Name
-          </label>
-          <input
-            type="text"
-            value={data.studentName}
-            onChange={(e) => onSetStudentName(e.target.value)}
-            placeholder="Enter your name"
-            className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm outline-none transition-colors placeholder:text-muted-foreground/50 focus:border-accent"
-          />
-        </div>
-
         {/* Division Toggle */}
         <div>
           <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
