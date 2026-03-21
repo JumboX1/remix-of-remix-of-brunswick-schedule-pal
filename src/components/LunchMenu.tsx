@@ -203,9 +203,7 @@ export function LunchMenu() {
           </div>
         </div>
 
-        <p className="text-right text-[6px] text-muted-foreground/20 tracking-wide pr-1">
-          Teddy Aaron & Jack Wendell
-        </p>
+
       </div>
     </div>
   );
