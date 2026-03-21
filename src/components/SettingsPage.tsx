@@ -6,12 +6,11 @@ import { UserScheduleData } from "@/hooks/useUserData";
 interface SettingsPageProps {
   data: UserScheduleData;
   onSetClassType: (type: ClassType) => void;
-  onSetStudentName: (name: string) => void;
   onUpdateBlockName: (block: Block, name: string) => void;
   onReset: () => void;
 }
 
-export function SettingsPage({ data, onSetClassType, onSetStudentName, onUpdateBlockName, onReset }: SettingsPageProps) {
+export function SettingsPage({ data, onSetClassType, onUpdateBlockName, onReset }: SettingsPageProps) {
   const [confirmReset, setConfirmReset] = useState(false);
 
   return (
