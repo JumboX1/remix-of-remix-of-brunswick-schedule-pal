@@ -76,9 +76,7 @@ export default function SchedulePage() {
 
   const noSchoolInfo = schoolInfo && schoolInfo.type !== "early_dismissal" ? schoolInfo : null;
 
-  const greeting = data.studentName
-    ? `Hey, ${data.studentName}`
-    : noSchoolInfo
+  const greeting = noSchoolInfo
     ? noSchoolInfo.reason
     : isToday
     ? "Today"
