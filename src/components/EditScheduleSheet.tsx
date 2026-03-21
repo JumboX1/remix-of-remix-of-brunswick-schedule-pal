@@ -9,7 +9,6 @@ interface EditScheduleSheetProps {
   data: UserScheduleData;
   onUpdateBlockName: (block: Block, name: string) => void;
   onSetClassType: (type: ClassType) => void;
-  onSetStudentName: (name: string) => void;
   onReset: () => void;
 }
 
@@ -19,7 +18,6 @@ export function EditScheduleSheet({
   data,
   onUpdateBlockName,
   onSetClassType,
-  onSetStudentName,
   onReset,
 }: EditScheduleSheetProps) {
   const [confirmReset, setConfirmReset] = useState(false);
