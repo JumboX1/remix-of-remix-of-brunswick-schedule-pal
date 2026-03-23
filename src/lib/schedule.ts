@@ -74,7 +74,8 @@ export function getBlocksForDate(date: Date): Block[] {
 
 export function getDaySchedule(
   date: Date,
-  classType: ClassType = "underclassman"
+  classType: ClassType = "underclassman",
+  blockLunchOverrides?: Record<Block, string>
 ): ScheduleSlot[] {
   if (!isSchoolDay(date)) return [];
 
