@@ -36,8 +36,8 @@ export default function SchedulePage() {
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
   const slots = useMemo(
-    () => getDaySchedule(selectedDate, data.classType),
-    [selectedDate, data.classType]
+    () => getDaySchedule(selectedDate, data.classType, data.blockLunchOverrides),
+    [selectedDate, data.classType, data.blockLunchOverrides]
   );
   const blocks = useMemo(() => getBlocksForDate(selectedDate), [selectedDate]);
 
