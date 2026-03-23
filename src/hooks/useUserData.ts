@@ -1,10 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { Block, BLOCKS, ClassType } from "@/lib/schedule";
 
+export type LunchOverride = ClassType | "default";
+
 export interface UserScheduleData {
   classType: ClassType;
   blockNames: Record<Block, string>;
   blockColors: Record<Block, string>;
+  blockLunchOverrides: Record<Block, LunchOverride>;
   studentName: string;
   onboarded: boolean;
 }
