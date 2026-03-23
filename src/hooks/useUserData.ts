@@ -29,6 +29,7 @@ function getDefaults(): UserScheduleData {
     classType: "underclassman",
     blockNames: Object.fromEntries(BLOCKS.map((b) => [b, ""])) as Record<Block, string>,
     blockColors: { ...BLOCK_COLOR_DEFAULTS },
+    blockLunchOverrides: Object.fromEntries(BLOCKS.map((b) => [b, "default"])) as Record<Block, LunchOverride>,
     studentName: "",
     onboarded: false,
   };
