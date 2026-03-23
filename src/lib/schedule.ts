@@ -83,6 +83,14 @@ export function getDaySchedule(
   const blocks = getBlocksForDate(date);
   const slots: ScheduleSlot[] = [];
 
+  // Determine effective lunch type: per-block override for the 4th block, or global default
+  const lunchBlock = blocks[3];
+  const lunchOverride = lunchBlock && blockLunchOverrides?.[lunchBlock];
+  const effectiveLunchType: ClassType =
+    lunchOverride && lunchOverride !== "default"
+      ? (lunchOverride as ClassType)
+      : classType;
+
   if (dayOfWeek === 3) {
     // WEDNESDAY — advisory then late-start 50-min classes
     slots.push({ label: "Advisory", start: "8:45", end: "9:00", type: "advisory" });
