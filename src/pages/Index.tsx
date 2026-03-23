@@ -184,7 +184,7 @@ export default function SchedulePage() {
         data={data}
         onUpdateBlockName={updateBlockName}
         onSetClassType={setClassType}
-        
+        onSetBlockLunchOverride={setBlockLunchOverride}
         onReset={resetAll}
       />
     </div>
