@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { X, RotateCcw } from "lucide-react";
 import { BLOCKS, Block, ClassType } from "@/lib/schedule";
-import { UserScheduleData } from "@/hooks/useUserData";
+import { UserScheduleData, LunchOverride } from "@/hooks/useUserData";
 
 interface EditScheduleSheetProps {
   open: boolean;
@@ -9,6 +9,7 @@ interface EditScheduleSheetProps {
   data: UserScheduleData;
   onUpdateBlockName: (block: Block, name: string) => void;
   onSetClassType: (type: ClassType) => void;
+  onSetBlockLunchOverride: (block: Block, override: LunchOverride) => void;
   onReset: () => void;
 }
 
@@ -18,6 +19,7 @@ export function EditScheduleSheet({
   data,
   onUpdateBlockName,
   onSetClassType,
+  onSetBlockLunchOverride,
   onReset,
 }: EditScheduleSheetProps) {
   const [confirmReset, setConfirmReset] = useState(false);
@@ -52,7 +54,7 @@ export function EditScheduleSheet({
           {/* Class Type Toggle */}
           <div className="mb-5">
             <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Lunch Schedule
+              Default Lunch Schedule
             </label>
             <div className="flex rounded-2xl bg-secondary p-1">
               {(["underclassman", "upperclassman"] as ClassType[]).map((type) => (
@@ -94,6 +96,53 @@ export function EditScheduleSheet({
                   />
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Per-Block Lunch Overrides */}
+          <div className="mb-5">
+            <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Lunch Timing by Block
+            </label>
+            <p className="mb-3 text-xs text-muted-foreground/70">
+              Override lunch timing for specific blocks (when that block falls before lunch)
+            </p>
+            <div className="space-y-2">
+              {BLOCKS.map((block) => {
+                const override = data.blockLunchOverrides?.[block] ?? "default";
+                const blockName = data.blockNames[block];
+                return (
+                  <div key={block} className="flex items-center gap-2.5">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground">
+                      {block}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      {blockName && (
+                        <p className="text-xs text-muted-foreground mb-1 truncate">{blockName}</p>
+                      )}
+                      <div className="flex rounded-xl bg-secondary p-0.5">
+                        {(["default", "underclassman", "upperclassman"] as LunchOverride[]).map((opt) => (
+                          <button
+                            key={opt}
+                            onClick={() => onSetBlockLunchOverride(block, opt)}
+                            className={`flex-1 rounded-lg px-2 py-1.5 text-[11px] font-medium transition-all ${
+                              override === opt
+                                ? "bg-card text-foreground shadow-sm"
+                                : "text-muted-foreground"
+                            }`}
+                          >
+                            {opt === "default"
+                              ? "Default"
+                              : opt === "underclassman"
+                              ? "Under"
+                              : "Upper"}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 

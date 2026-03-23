@@ -74,13 +74,22 @@ export function getBlocksForDate(date: Date): Block[] {
 
 export function getDaySchedule(
   date: Date,
-  classType: ClassType = "underclassman"
+  classType: ClassType = "underclassman",
+  blockLunchOverrides?: Record<Block, string>
 ): ScheduleSlot[] {
   if (!isSchoolDay(date)) return [];
 
   const dayOfWeek = date.getDay();
   const blocks = getBlocksForDate(date);
   const slots: ScheduleSlot[] = [];
+
+  // Determine effective lunch type: per-block override for the 4th block, or global default
+  const lunchBlock = blocks[3];
+  const lunchOverride = lunchBlock && blockLunchOverrides?.[lunchBlock];
+  const effectiveLunchType: ClassType =
+    lunchOverride && lunchOverride !== "default"
+      ? (lunchOverride as ClassType)
+      : classType;
 
   if (dayOfWeek === 3) {
     // WEDNESDAY — advisory then late-start 50-min classes
@@ -89,7 +98,7 @@ export function getDaySchedule(
     slots.push({ label: blocks[1], start: "10:10", end: "11:00", type: "class", block: blocks[1] });
     slots.push({ label: blocks[2], start: "11:10", end: "12:00", type: "class", block: blocks[2] });
 
-    if (classType === "underclassman") {
+    if (effectiveLunchType === "underclassman") {
       slots.push({ label: blocks[3], start: "12:10", end: "1:00", type: "class", block: blocks[3] });
       slots.push({ label: "Lunch", start: "1:00", end: "1:25", type: "lunch" });
     } else {
@@ -106,7 +115,7 @@ export function getDaySchedule(
     slots.push({ label: "Flex", start: "10:30", end: "10:55", type: "advisory" });
     slots.push({ label: blocks[2], start: "11:05", end: "11:55", type: "class", block: blocks[2] });
 
-    if (classType === "underclassman") {
+    if (effectiveLunchType === "underclassman") {
       slots.push({ label: blocks[3], start: "12:05", end: "1:05", type: "class", block: blocks[3] });
       slots.push({ label: "Lunch", start: "1:05", end: "1:35", type: "lunch" });
     } else {
@@ -122,7 +131,7 @@ export function getDaySchedule(
     slots.push({ label: blocks[1], start: "9:20", end: "10:20", type: "class", block: blocks[1] });
     slots.push({ label: blocks[2], start: "10:30", end: "11:20", type: "class", block: blocks[2] });
 
-    if (classType === "underclassman") {
+    if (effectiveLunchType === "underclassman") {
       slots.push({ label: blocks[3], start: "11:30", end: "12:30", type: "class", block: blocks[3] });
       slots.push({ label: "Lunch", start: "12:30", end: "1:00", type: "lunch" });
     } else {
@@ -139,7 +148,7 @@ export function getDaySchedule(
     slots.push({ label: "Flex", start: "10:30", end: "10:55", type: "advisory" });
     slots.push({ label: blocks[2], start: "11:05", end: "11:55", type: "class", block: blocks[2] });
 
-    if (classType === "underclassman") {
+    if (effectiveLunchType === "underclassman") {
       slots.push({ label: blocks[3], start: "12:05", end: "1:05", type: "class", block: blocks[3] });
       slots.push({ label: "Lunch", start: "1:05", end: "1:35", type: "lunch" });
     } else {
@@ -156,7 +165,7 @@ export function getDaySchedule(
     slots.push({ label: "Assembly", start: "10:30", end: "10:55", type: "assembly" });
     slots.push({ label: blocks[2], start: "11:05", end: "11:55", type: "class", block: blocks[2] });
 
-    if (classType === "underclassman") {
+    if (effectiveLunchType === "underclassman") {
       slots.push({ label: blocks[3], start: "12:05", end: "1:05", type: "class", block: blocks[3] });
       slots.push({ label: "Lunch", start: "1:05", end: "1:35", type: "lunch" });
     } else {

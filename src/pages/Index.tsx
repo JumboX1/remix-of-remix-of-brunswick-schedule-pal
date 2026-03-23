@@ -18,7 +18,7 @@ export default function SchedulePage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [editOpen, setEditOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<AppTab>("schedule");
-  const { data, updateBlockName, setClassType, setOnboarded, resetAll } = useUserData();
+  const { data, updateBlockName, setClassType, setOnboarded, setBlockLunchOverride, resetAll } = useUserData();
 
   // Fetch DB calendar overrides on mount
   useEffect(() => {
@@ -36,8 +36,8 @@ export default function SchedulePage() {
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
   const slots = useMemo(
-    () => getDaySchedule(selectedDate, data.classType),
-    [selectedDate, data.classType]
+    () => getDaySchedule(selectedDate, data.classType, data.blockLunchOverrides),
+    [selectedDate, data.classType, data.blockLunchOverrides]
   );
   const blocks = useMemo(() => getBlocksForDate(selectedDate), [selectedDate]);
 
@@ -184,7 +184,7 @@ export default function SchedulePage() {
         data={data}
         onUpdateBlockName={updateBlockName}
         onSetClassType={setClassType}
-        
+        onSetBlockLunchOverride={setBlockLunchOverride}
         onReset={resetAll}
       />
     </div>

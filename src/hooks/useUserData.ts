@@ -1,10 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { Block, BLOCKS, ClassType } from "@/lib/schedule";
 
+export type LunchOverride = ClassType | "default";
+
 export interface UserScheduleData {
   classType: ClassType;
   blockNames: Record<Block, string>;
   blockColors: Record<Block, string>;
+  blockLunchOverrides: Record<Block, LunchOverride>;
   studentName: string;
   onboarded: boolean;
 }
@@ -26,6 +29,7 @@ function getDefaults(): UserScheduleData {
     classType: "underclassman",
     blockNames: Object.fromEntries(BLOCKS.map((b) => [b, ""])) as Record<Block, string>,
     blockColors: { ...BLOCK_COLOR_DEFAULTS },
+    blockLunchOverrides: Object.fromEntries(BLOCKS.map((b) => [b, "default"])) as Record<Block, LunchOverride>,
     studentName: "",
     onboarded: false,
   };
@@ -72,6 +76,13 @@ export function useUserData() {
     setData((prev) => ({ ...prev, onboarded }));
   }, []);
 
+  const setBlockLunchOverride = useCallback((block: Block, override: LunchOverride) => {
+    setData((prev) => ({
+      ...prev,
+      blockLunchOverrides: { ...prev.blockLunchOverrides, [block]: override },
+    }));
+  }, []);
+
   const resetAll = useCallback(() => {
     setData(getDefaults());
   }, []);
@@ -82,6 +93,7 @@ export function useUserData() {
     setClassType,
     setStudentName,
     setOnboarded,
+    setBlockLunchOverride,
     resetAll,
   };
 }
