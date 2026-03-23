@@ -76,6 +76,13 @@ export function useUserData() {
     setData((prev) => ({ ...prev, onboarded }));
   }, []);
 
+  const setBlockLunchOverride = useCallback((block: Block, override: LunchOverride) => {
+    setData((prev) => ({
+      ...prev,
+      blockLunchOverrides: { ...prev.blockLunchOverrides, [block]: override },
+    }));
+  }, []);
+
   const resetAll = useCallback(() => {
     setData(getDefaults());
   }, []);
@@ -86,6 +93,7 @@ export function useUserData() {
     setClassType,
     setStudentName,
     setOnboarded,
+    setBlockLunchOverride,
     resetAll,
   };
 }
