@@ -1,5 +1,5 @@
 import { ScheduleSlot, Block } from "@/lib/schedule";
-import { getSchoolDayInfo, SchoolDayInfo } from "@/lib/schoolCalendar";
+import { getSchoolDayInfo } from "@/lib/schoolCalendar";
 
 interface DayScheduleViewProps {
   slots: ScheduleSlot[];
@@ -11,26 +11,23 @@ interface DayScheduleViewProps {
 export function DayScheduleView({ slots, blockNames, isWeekend, selectedDate }: DayScheduleViewProps) {
   const schoolInfo = getSchoolDayInfo(selectedDate);
 
-  // No school: weekend, break, or holiday
+  // No school
   if (isWeekend || (schoolInfo && schoolInfo.type !== "early_dismissal")) {
-    const emoji = schoolInfo?.type === "break" ? "🌴" : schoolInfo?.type === "holiday" ? "🎉" : "☀️";
     const title = schoolInfo?.reason ?? "Weekend";
     const subtitle = schoolInfo
       ? schoolInfo.type === "break"
-        ? "Enjoy your break!"
+        ? "Enjoy your break"
         : "No school today"
-      : "Enjoy your weekend";
+      : "No classes today";
 
     return (
       <div className="flex flex-col items-center justify-center py-16">
-        <span className="text-4xl mb-3">{emoji}</span>
         <p className="text-lg font-serif text-foreground">{title}</p>
         <p className="mt-1 text-sm text-muted-foreground/60">{subtitle}</p>
       </div>
     );
   }
 
-  // Active schedule
   const now = new Date();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
   const isSameDay = now.toDateString() === selectedDate.toDateString();
@@ -45,8 +42,7 @@ export function DayScheduleView({ slots, blockNames, isWeekend, selectedDate }: 
     <div className="space-y-1.5">
       {/* Early dismissal banner */}
       {schoolInfo?.type === "early_dismissal" && (
-        <div className="flex items-center gap-2 rounded-2xl bg-accent/10 px-4 py-3 mb-1">
-          <span className="text-base">⚡</span>
+        <div className="flex items-center gap-2 rounded-xl bg-accent/10 px-4 py-2.5 mb-1">
           <p className="text-xs font-medium text-accent">{schoolInfo.reason}</p>
         </div>
       )}
@@ -62,16 +58,16 @@ export function DayScheduleView({ slots, blockNames, isWeekend, selectedDate }: 
         return (
           <div
             key={i}
-            className={`flex items-stretch rounded-2xl transition-all ${
+            className={`flex items-stretch rounded-xl transition-all active:scale-[0.98] ${
               slot.type === "assembly"
-                ? "bg-primary text-primary-foreground"
+                ? "bg-primary text-primary-foreground shadow-sm"
                 : slot.type === "advisory"
-                ? "bg-accent text-accent-foreground"
+                ? "bg-accent text-accent-foreground shadow-sm"
                 : slot.type === "lunch"
                 ? "bg-secondary"
-                : "bg-card border border-border"
-            } ${isActive ? "ring-2 ring-accent ring-offset-1 ring-offset-background" : ""} ${
-              isPast && !isActive ? "opacity-50" : ""
+                : "bg-card border border-border shadow-sm"
+            } ${isActive ? "ring-2 ring-accent ring-offset-1 ring-offset-background scale-[1.01]" : ""} ${
+              isPast && !isActive ? "opacity-40" : ""
             }`}
           >
             {/* Time column */}
