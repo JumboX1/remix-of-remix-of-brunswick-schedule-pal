@@ -25,6 +25,10 @@ function formatCountdown(ms: number): string {
   return `${s}s`;
 }
 
+function getSlotName(slot: ScheduleSlot, blockNames: Record<Block, string>): string {
+  return slot.block ? (blockNames[slot.block] || `Block ${slot.block}`) : (slot.label || "");
+}
+
 export function WhatsNextTicker({ slots, blockNames, selectedDate }: WhatsNextTickerProps) {
   const [now, setNow] = useState(new Date());
 
@@ -40,49 +44,52 @@ export function WhatsNextTicker({ slots, blockNames, selectedDate }: WhatsNextTi
 
     const currentMs = now.getTime();
 
-    // Find current or next slot
     for (let i = 0; i < slots.length; i++) {
       const start = parseTime(slots[i].start, selectedDate);
       const end = parseTime(slots[i].end, selectedDate);
 
       if (currentMs < start.getTime()) {
-        // Next slot hasn't started
-        const name = slots[i].block ? (blockNames[slots[i].block!] || `Block ${slots[i].block}`) : slots[i].label;
+        // Next slot hasn't started yet
+        const nextSlot = slots[i];
         return {
           status: "upcoming" as const,
-          label: name,
+          label: getSlotName(nextSlot, blockNames),
+          block: nextSlot.block,
           countdown: formatCountdown(start.getTime() - currentMs),
-          prefix: "Next up",
+          startTime: nextSlot.start,
+          progress: 0,
         };
       }
 
       if (currentMs >= start.getTime() && currentMs < end.getTime()) {
-        // Currently in this slot
-        const name = slots[i].block ? (blockNames[slots[i].block!] || `Block ${slots[i].block}`) : slots[i].label;
+        const name = getSlotName(slots[i], blockNames);
+        const total = end.getTime() - start.getTime();
+        const elapsed = currentMs - start.getTime();
         const remaining = end.getTime() - currentMs;
+        const progress = Math.min(1, elapsed / total);
 
-        // Also peek at what's next
+        // Next slot
         const nextSlot = slots[i + 1];
-        const nextName = nextSlot
-          ? nextSlot.block
-            ? (blockNames[nextSlot.block!] || `Block ${nextSlot.block}`)
-            : nextSlot.label
-          : "End of day";
+        const nextName = nextSlot ? getSlotName(nextSlot, blockNames) : null;
+        const nextTime = nextSlot?.start ?? null;
 
         return {
           status: "active" as const,
           label: name,
+          block: slots[i].block,
           countdown: formatCountdown(remaining),
-          prefix: "ends in",
+          progress,
           nextLabel: nextName,
+          nextTime,
+          nextBlock: nextSlot?.block ?? null,
         };
       }
     }
 
-    // All slots are done
+    // All slots done
     const lastEnd = parseTime(slots[slots.length - 1].end, selectedDate);
     if (currentMs >= lastEnd.getTime()) {
-      return { status: "done" as const, label: "School's out!", countdown: "", prefix: "" };
+      return { status: "done" as const };
     }
 
     return null;
@@ -92,30 +99,98 @@ export function WhatsNextTicker({ slots, blockNames, selectedDate }: WhatsNextTi
 
   if (tickerInfo.status === "done") {
     return (
-      <div className="mx-5 mb-2 flex items-center gap-3 rounded-2xl bg-secondary px-4 py-3">
-        <span className="text-base">🎉</span>
-        <p className="text-sm font-medium text-foreground">School's out for today!</p>
+      <div className="mx-4 mb-3">
+        <div className="rounded-xl bg-secondary px-4 py-3">
+          <p className="text-sm font-medium text-foreground">School's done for today</p>
+        </div>
       </div>
     );
   }
 
+  if (tickerInfo.status === "upcoming") {
+    return (
+      <div className="mx-4 mb-3 space-y-2">
+        {/* Hero card - upcoming */}
+        <div className="rounded-xl bg-primary px-4 py-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-medium uppercase tracking-wider text-primary-foreground/60">
+                Up Next
+              </p>
+              <p className="mt-0.5 text-lg font-semibold text-primary-foreground">
+                {tickerInfo.block ? `${tickerInfo.block} Block` : tickerInfo.label}
+              </p>
+              {tickerInfo.block && tickerInfo.label !== `Block ${tickerInfo.block}` && (
+                <p className="text-xs text-primary-foreground/70">{tickerInfo.label}</p>
+              )}
+            </div>
+            <div className="text-right">
+              <p className="text-2xl font-bold tabular-nums text-primary-foreground">
+                {tickerInfo.countdown}
+              </p>
+              <p className="text-[11px] text-primary-foreground/50">
+                starts at {tickerInfo.startTime}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Active
   return (
-    <div className="mx-5 mb-2 flex items-center gap-3 rounded-2xl bg-accent/10 border border-accent/20 px-4 py-3">
-      <div className="flex h-10 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-foreground text-xs font-bold tabular-nums px-3">
-        {tickerInfo.countdown}
+    <div className="mx-4 mb-3 space-y-2">
+      {/* Hero card - current block */}
+      <div className="rounded-xl bg-accent px-4 py-4 shadow-sm">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[11px] font-medium uppercase tracking-wider text-accent-foreground/60">
+              Current
+            </p>
+            <p className="mt-0.5 text-lg font-semibold text-accent-foreground">
+              {tickerInfo.block ? `${tickerInfo.block} Block` : tickerInfo.label}
+            </p>
+            {tickerInfo.block && tickerInfo.label !== `Block ${tickerInfo.block}` && (
+              <p className="text-xs text-accent-foreground/70">{tickerInfo.label}</p>
+            )}
+          </div>
+          <div className="text-right">
+            <p className="text-2xl font-bold tabular-nums text-accent-foreground">
+              {tickerInfo.countdown}
+            </p>
+            <p className="text-[11px] text-accent-foreground/50">remaining</p>
+          </div>
+        </div>
+        {/* Progress bar */}
+        <div className="mt-3 h-1.5 w-full rounded-full bg-accent-foreground/15 overflow-hidden">
+          <div
+            className="h-full rounded-full bg-accent-foreground/40 transition-all duration-1000 ease-linear"
+            style={{ width: `${tickerInfo.progress * 100}%` }}
+          />
+        </div>
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-foreground truncate">
-          {tickerInfo.status === "active" ? tickerInfo.label : tickerInfo.label}
-        </p>
-        <p className="text-[11px] text-muted-foreground truncate">
-          {tickerInfo.status === "active"
-            ? `${tickerInfo.prefix} · Then ${tickerInfo.nextLabel}`
-            : `starts soon`}
-        </p>
-      </div>
-      {tickerInfo.status === "active" && (
-        <div className="h-2 w-2 rounded-full bg-accent animate-pulse shrink-0" />
+
+      {/* Up Next mini card */}
+      {tickerInfo.nextLabel && (
+        <div className="flex items-center justify-between rounded-xl bg-card border border-border px-4 py-2.5 shadow-sm">
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+              Next
+            </span>
+            {tickerInfo.nextBlock && (
+              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-primary/10 text-[10px] font-bold text-primary">
+                {tickerInfo.nextBlock}
+              </span>
+            )}
+            <span className="text-sm font-medium text-foreground">{tickerInfo.nextLabel}</span>
+          </div>
+          {tickerInfo.nextTime && (
+            <span className="text-xs tabular-nums text-muted-foreground">
+              at {tickerInfo.nextTime}
+            </span>
+          )}
+        </div>
       )}
     </div>
   );
