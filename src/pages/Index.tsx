@@ -173,7 +173,13 @@ export default function SchedulePage() {
       ) : activeTab === "lunch" ? (
         <LunchMenu />
       ) : (
-        <MorePage />
+        <MorePage
+          onOpenSettings={() => setActiveTab("schedule")}
+          onOpenEditSchedule={() => {
+            setActiveTab("schedule");
+            setEditOpen(true);
+          }}
+        />
       )}
 
       <BottomTabs active={activeTab} onChange={setActiveTab} />
