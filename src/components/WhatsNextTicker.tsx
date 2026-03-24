@@ -101,7 +101,7 @@ export function WhatsNextTicker({ slots, blockNames, selectedDate }: WhatsNextTi
 
   return (
     <div className="mx-5 mb-2 flex items-center gap-3 rounded-2xl bg-accent/10 border border-accent/20 px-4 py-3">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-foreground text-xs font-bold tabular-nums">
+      <div className="flex h-10 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-foreground text-xs font-bold tabular-nums px-3">
         {tickerInfo.countdown}
       </div>
       <div className="flex-1 min-w-0">
