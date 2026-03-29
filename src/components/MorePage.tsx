@@ -13,7 +13,7 @@ const LINKS = [
     href: "https://mybackpack.brunswickschool.org",
     icon: Globe,
     isImage: false,
-    title: "MyBrunswick Portal",
+    title: "MyBackpack",
     desc: "Grades, assignments & announcements",
   },
   {
