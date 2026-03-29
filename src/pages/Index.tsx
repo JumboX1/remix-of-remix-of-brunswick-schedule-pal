@@ -174,7 +174,6 @@ export default function SchedulePage() {
         <LunchMenu />
       ) : (
         <MorePage
-          onOpenSettings={() => setEditOpen(true)}
           onOpenEditSchedule={() => setEditOpen(true)}
         />
       )}

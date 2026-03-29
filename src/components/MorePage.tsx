@@ -1,4 +1,4 @@
-import { ExternalLink, Settings, CalendarDays, Mail, Heart, BookOpen, Globe } from "lucide-react";
+import { ExternalLink, CalendarDays, Mail, BookOpen, Globe } from "lucide-react";
 import wickcaresIcon from "@/assets/wickcares-icon.webp";
 
 const LINKS = [
@@ -10,7 +10,7 @@ const LINKS = [
     desc: "Community service for Wick students",
   },
   {
-    href: "https://my.brunswickschool.org",
+    href: "https://mybackpack.brunswickschool.org",
     icon: Globe,
     isImage: false,
     title: "MyBrunswick Portal",
@@ -26,11 +26,10 @@ const LINKS = [
 ];
 
 interface MorePageProps {
-  onOpenSettings?: () => void;
   onOpenEditSchedule?: () => void;
 }
 
-export function MorePage({ onOpenSettings, onOpenEditSchedule }: MorePageProps) {
+export function MorePage({ onOpenEditSchedule }: MorePageProps) {
   return (
     <div className="flex flex-1 flex-col">
       <header className="px-5 pb-1 pt-4">
@@ -38,31 +37,21 @@ export function MorePage({ onOpenSettings, onOpenEditSchedule }: MorePageProps) 
       </header>
 
       <div className="flex-1 overflow-y-auto px-5 pb-24 no-scrollbar">
-        {/* Quick Actions */}
-        {(onOpenSettings || onOpenEditSchedule) && (
-          <div className="mt-4 grid grid-cols-2 gap-2.5">
-            {onOpenSettings && (
-              <button
-                onClick={onOpenSettings}
-                className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border/60 p-4 transition-all active:scale-[0.97] active:bg-secondary"
-              >
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
-                  <Settings className="h-5 w-5 text-accent" />
-                </div>
-                <span className="text-xs font-semibold">Settings</span>
-              </button>
-            )}
-            {onOpenEditSchedule && (
-              <button
-                onClick={onOpenEditSchedule}
-                className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border/60 p-4 transition-all active:scale-[0.97] active:bg-secondary"
-              >
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
-                  <BookOpen className="h-5 w-5 text-accent" />
-                </div>
-                <span className="text-xs font-semibold">Edit Schedule</span>
-              </button>
-            )}
+        {/* Edit Schedule */}
+        {onOpenEditSchedule && (
+          <div className="mt-4">
+            <button
+              onClick={onOpenEditSchedule}
+              className="flex w-full items-center gap-3.5 rounded-2xl bg-card border border-border/60 p-4 transition-all active:scale-[0.98] active:bg-secondary"
+            >
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/10">
+                <BookOpen className="h-5 w-5 text-accent" />
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-semibold">Edit Schedule</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">Classes, division & lunch</p>
+              </div>
+            </button>
           </div>
         )}
 
@@ -100,18 +89,14 @@ export function MorePage({ onOpenSettings, onOpenEditSchedule }: MorePageProps) 
           </div>
         </div>
 
-        {/* About */}
-        <div className="mt-6 rounded-2xl bg-secondary/50 p-5 text-center">
-          <div className="flex items-center justify-center gap-1.5 text-muted-foreground/60 mb-2">
-            <Heart className="h-3 w-3" />
-            <span className="text-[10px] font-bold uppercase tracking-[0.15em]">Made for Brunswick</span>
-          </div>
-          <p className="text-[11px] text-muted-foreground/70 leading-relaxed">
+        {/* Footer */}
+        <div className="mt-8 text-center space-y-1.5">
+          <p className="text-[11px] text-muted-foreground/60">
             Built & maintained by Jack Wendell '27
           </p>
           <a
             href="mailto:jwendell@brunswickschool.org"
-            className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-medium text-accent/70 hover:text-accent transition-colors"
+            className="inline-flex items-center gap-1.5 text-[11px] font-medium text-accent/60 hover:text-accent transition-colors"
           >
             <Mail className="h-3 w-3" />
             jwendell@brunswickschool.org
