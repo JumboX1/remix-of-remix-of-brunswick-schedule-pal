@@ -49,7 +49,7 @@ export function MorePage({ onOpenEditSchedule }: MorePageProps) {
               </div>
               <div className="text-left">
                 <p className="text-sm font-semibold">Edit Schedule</p>
-                <p className="text-[11px] text-muted-foreground mt-0.5">Classes, division & lunch</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">Classes, grade & lunch</p>
               </div>
             </button>
           </div>

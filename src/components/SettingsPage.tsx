@@ -42,7 +42,7 @@ export function SettingsPage({ data, onSetClassType, onUpdateBlockName, onReset 
             ))}
           </div>
           <p className="mt-1.5 text-[11px] text-muted-foreground/60">
-            This affects your lunch schedule timing
+            This affects your lunch schedule timing (9–10 or 11–12)
           </p>
         </div>
 

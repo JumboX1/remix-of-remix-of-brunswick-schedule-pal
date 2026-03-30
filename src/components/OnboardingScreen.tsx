@@ -10,7 +10,7 @@ export function OnboardingScreen({ onSelect }: OnboardingScreenProps) {
       <div className="w-full max-w-sm text-center">
         <h1 className="text-3xl leading-tight mb-2">Welcome to Brunswick</h1>
         <p className="text-sm text-muted-foreground mb-10">
-          Choose your division to get started
+          Choose your grade to get started
         </p>
 
         <div className="space-y-3">
@@ -20,7 +20,7 @@ export function OnboardingScreen({ onSelect }: OnboardingScreenProps) {
           >
             <span className="text-2xl mb-2">📘</span>
             <span className="text-base font-semibold">Underclassman</span>
-            <span className="text-xs text-muted-foreground mt-1">Grades 5–8 · First lunch</span>
+            <span className="text-xs text-muted-foreground mt-1">Grades 9–10 · First lunch</span>
           </button>
 
           <button
@@ -29,7 +29,7 @@ export function OnboardingScreen({ onSelect }: OnboardingScreenProps) {
           >
             <span className="text-2xl mb-2">📕</span>
             <span className="text-base font-semibold">Upperclassman</span>
-            <span className="text-xs text-muted-foreground mt-1">Grades 9–12 · Second lunch</span>
+            <span className="text-xs text-muted-foreground mt-1">Grades 11–12 · Second lunch</span>
           </button>
         </div>
 
