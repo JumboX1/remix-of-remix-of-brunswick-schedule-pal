@@ -21,10 +21,10 @@ export function SettingsPage({ data, onSetClassType, onUpdateBlockName, onReset 
       </header>
 
       <div className="flex-1 overflow-y-auto px-5 pb-24 no-scrollbar space-y-5">
-        {/* Division Toggle */}
+        {/* Grade Toggle */}
         <div>
           <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Division
+            Grade
           </label>
           <div className="flex rounded-2xl bg-secondary p-1">
             {(["underclassman", "upperclassman"] as ClassType[]).map((type) => (
@@ -42,7 +42,7 @@ export function SettingsPage({ data, onSetClassType, onUpdateBlockName, onReset 
             ))}
           </div>
           <p className="mt-1.5 text-[11px] text-muted-foreground/60">
-            This affects your lunch schedule timing
+            This affects your lunch schedule timing (9–10 or 11–12)
           </p>
         </div>
 
