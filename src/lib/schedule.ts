@@ -158,10 +158,11 @@ export function getDaySchedule(
 
     slots.push({ label: blocks[4], start: "1:40", end: "2:40", type: "class", block: blocks[4] });
   } else {
-    // THURSDAY — adjusted schedule: shorter early blocks, long assembly
-    slots.push({ label: blocks[0], start: "8:10", end: "8:55", type: "class", block: blocks[0] });
-    slots.push({ label: blocks[1], start: "9:05", end: "9:50", type: "class", block: blocks[1] });
-    slots.push({ label: "Assembly", start: "10:00", end: "10:55", type: "assembly" });
+    // THURSDAY — advisory at start, assembly mid-day
+    slots.push({ label: "Advisory", start: "7:45", end: "8:00", type: "advisory" });
+    slots.push({ label: blocks[0], start: "8:10", end: "9:10", type: "class", block: blocks[0] });
+    slots.push({ label: blocks[1], start: "9:20", end: "10:20", type: "class", block: blocks[1] });
+    slots.push({ label: "Assembly", start: "10:30", end: "10:55", type: "assembly" });
     slots.push({ label: blocks[2], start: "11:05", end: "11:55", type: "class", block: blocks[2] });
 
     if (effectiveLunchType === "underclassman") {
