@@ -1,31 +1,33 @@
-import { ScheduleSlot, Block } from "@/lib/schedule";
-import { getSchoolDayInfo } from "@/lib/schoolCalendar";
+import { ScheduleSlot, Block, getDaySchedule, getBlocksForDate, ClassType } from "@/lib/schedule";
+import { getSchoolDayInfo, isSchoolDay } from "@/lib/schoolCalendar";
 
 interface DayScheduleViewProps {
   slots: ScheduleSlot[];
   blockNames: Record<Block, string>;
   isWeekend: boolean;
   selectedDate: Date;
+  classType?: ClassType;
+  blockLunchOverrides?: Record<Block, string>;
 }
 
-export function DayScheduleView({ slots, blockNames, isWeekend, selectedDate }: DayScheduleViewProps) {
+export function DayScheduleView({ slots, blockNames, isWeekend, selectedDate, classType = "underclassman", blockLunchOverrides }: DayScheduleViewProps) {
   const schoolInfo = getSchoolDayInfo(selectedDate);
 
-  // No school
-  if (isWeekend || (schoolInfo && schoolInfo.type !== "early_dismissal")) {
-    const title = schoolInfo?.reason ?? "Weekend";
-    const subtitle = schoolInfo
-      ? schoolInfo.type === "break"
-        ? "Enjoy your break"
-        : "No school today"
-      : "No classes today";
-
+  // No school (non-weekend)
+  if (!isWeekend && schoolInfo && schoolInfo.type !== "early_dismissal") {
     return (
       <div className="flex flex-col items-center justify-center py-16">
-        <p className="text-lg font-serif text-foreground">{title}</p>
-        <p className="mt-1 text-sm text-muted-foreground/60">{subtitle}</p>
+        <p className="text-lg font-serif text-foreground">{schoolInfo.reason}</p>
+        <p className="mt-1 text-sm text-muted-foreground/60">
+          {schoolInfo.type === "break" ? "Enjoy your break" : "No school today"}
+        </p>
       </div>
     );
+  }
+
+  // Weekend → show next week preview
+  if (isWeekend) {
+    return <WeekendPreview selectedDate={selectedDate} blockNames={blockNames} classType={classType} blockLunchOverrides={blockLunchOverrides} />;
   }
 
   const now = new Date();
