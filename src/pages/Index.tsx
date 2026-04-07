@@ -167,6 +167,8 @@ export default function SchedulePage() {
               blockNames={data.blockNames}
               isWeekend={isWeekend}
               selectedDate={selectedDate}
+              classType={data.classType}
+              blockLunchOverrides={data.blockLunchOverrides}
             />
           </main>
         </>
