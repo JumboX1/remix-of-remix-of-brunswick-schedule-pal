@@ -264,19 +264,43 @@ export function LunchMenu() {
             )}
           </div>
         ) : (
-          <div className="rounded-2xl bg-card border border-border/60 p-8 text-center mt-2">
-            <span className="text-3xl">
-              {selectedDate.getDay() === 0 || selectedDate.getDay() === 6 ? "🛋️" : closedDates.has(dateKey) ? "🏫" : "📋"}
-            </span>
-            <p className="mt-3 text-sm font-semibold">No Menu Available</p>
-            <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-              {selectedDate.getDay() === 0 || selectedDate.getDay() === 6
-                ? "No lunch on weekends"
-                : closedDates.has(dateKey)
-                ? "School closed — no lunch today"
-                : "Menu not posted yet for this day"}
-            </p>
-          </div>
+          (() => {
+            const isWeekend = selectedDate.getDay() === 0 || selectedDate.getDay() === 6;
+            const isClosed = closedDates.has(dateKey);
+            // Check if selectedDate is in the same week (Sun-Sat) as today and no menus exist for any weekday this week
+            const weekStart = new Date(today);
+            weekStart.setHours(0, 0, 0, 0);
+            weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekEnd.getDate() + 6);
+            const inCurrentWeek = selectedDate >= weekStart && selectedDate <= weekEnd;
+            let weekHasAnyMenu = false;
+            for (let i = 0; i < 7; i++) {
+              const d = new Date(weekStart);
+              d.setDate(d.getDate() + i);
+              if (menuData[toKey(d)]) { weekHasAnyMenu = true; break; }
+            }
+            const showWeekNotice = !isWeekend && !isClosed && inCurrentWeek && !weekHasAnyMenu;
+            return (
+              <div className="rounded-2xl bg-card border border-border/60 p-8 text-center mt-2">
+                <span className="text-3xl">
+                  {isWeekend ? "🛋️" : isClosed ? "🏫" : "📋"}
+                </span>
+                <p className="mt-3 text-sm font-semibold">
+                  {showWeekNotice ? "Menu Not Posted Yet" : "No Menu Available"}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                  {isWeekend
+                    ? "No lunch on weekends"
+                    : isClosed
+                    ? "School closed — no lunch today"
+                    : showWeekNotice
+                    ? "Brunswick has not posted lunch listings for this week yet"
+                    : "Menu not posted yet for this day"}
+                </p>
+              </div>
+            );
+          })()
         )}
 
         {/* Spacer */}
