@@ -167,6 +167,20 @@ const DATE_OVERRIDES: Record<string, { blocks: Block[]; build: (lunchType: Class
       { label: "Conflict Exams", start: "1:00", end: "3:00", type: "assembly" },
     ],
   },
+  // Tue June 2, 2026 — Exam Return Day / Last Day of School (A–G short schedule)
+  "2026-06-02": {
+    blocks: ["A", "B", "C", "D", "E", "F", "G"],
+    build: () => [
+      { label: "A", start: "8:10", end: "8:20", type: "class", block: "A" },
+      { label: "B", start: "8:30", end: "8:40", type: "class", block: "B" },
+      { label: "C", start: "8:50", end: "9:00", type: "class", block: "C" },
+      { label: "D", start: "9:10", end: "9:20", type: "class", block: "D" },
+      { label: "E", start: "9:30", end: "9:40", type: "class", block: "E" },
+      { label: "F", start: "9:50", end: "10:00", type: "class", block: "F" },
+      { label: "G", start: "10:10", end: "10:20", type: "class", block: "G" },
+      { label: "US Closing Ceremonies", start: "11:00", end: "12:00", type: "assembly" },
+    ],
+  },
 };
 
 export function getBlocksForDate(date: Date): Block[] {
