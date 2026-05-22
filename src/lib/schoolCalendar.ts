@@ -78,14 +78,13 @@ const CALENDAR_DATA: Record<string, SchoolDayInfo> = {
   // --- Memorial Day ---
   "2026-05-25": { reason: "Memorial Day", type: "holiday" },
 
-  // --- US Exams / End of Year (typical Brunswick schedule) ---
-  "2026-05-28": { reason: "US Exam Period", type: "noschool" },
-  "2026-05-29": { reason: "US Exam Period", type: "noschool" },
-  "2026-06-01": { reason: "US Exam Period", type: "noschool" },
-  "2026-06-02": { reason: "US Exam Period", type: "noschool" },
-  "2026-06-03": { reason: "US Exam Period", type: "noschool" },
-  "2026-06-04": { reason: "US Exam Period", type: "noschool" },
-  "2026-06-05": { reason: "Last Day of School", type: "noschool" },
+  // --- US Exams / End of Year ---
+  // May 26–29 are exam days (school days, schedule overridden in schedule.ts)
+  // June 2 is Exam Return Day / Last Day of School (A–G short schedule)
+  "2026-06-01": { reason: "No School", type: "noschool" },
+  "2026-06-03": { reason: "No School", type: "noschool" },
+  "2026-06-04": { reason: "No School", type: "noschool" },
+  "2026-06-05": { reason: "Summer Break", type: "break" },
 
   // --- Summer Break (June 6 onwards) ---
   ...generateSummerBreak(),
