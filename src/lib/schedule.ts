@@ -138,6 +138,35 @@ const DATE_OVERRIDES: Record<string, { blocks: Block[]; build: (lunchType: Class
       return slots;
     },
   },
+  // Final Exam Week — May 26–29, 2026
+  "2026-05-26": {
+    blocks: [],
+    build: () => [
+      { label: "Science Exam", start: "9:00", end: "11:00", type: "assembly" },
+      { label: "English Exam", start: "1:00", end: "3:00", type: "assembly" },
+    ],
+  },
+  "2026-05-27": {
+    blocks: [],
+    build: () => [
+      { label: "History Exam", start: "9:00", end: "11:00", type: "assembly" },
+      { label: "Conflict Exams", start: "1:00", end: "3:00", type: "assembly" },
+    ],
+  },
+  "2026-05-28": {
+    blocks: [],
+    build: () => [
+      { label: "Mod. Lang. & Classics Exam", start: "9:00", end: "11:00", type: "assembly" },
+      { label: "Computer Science Exam", start: "1:00", end: "3:00", type: "assembly" },
+    ],
+  },
+  "2026-05-29": {
+    blocks: [],
+    build: () => [
+      { label: "Math Exam", start: "9:00", end: "11:00", type: "assembly" },
+      { label: "Conflict Exams", start: "1:00", end: "3:00", type: "assembly" },
+    ],
+  },
 };
 
 export function getBlocksForDate(date: Date): Block[] {
