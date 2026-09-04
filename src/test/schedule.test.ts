@@ -1,94 +1,100 @@
 import { describe, it, expect } from "vitest";
-import { getRotationIndex, getBlocksForDate, getDaySchedule } from "@/lib/schedule";
+import { getBlocksForDate, getDaySchedule } from "@/lib/schedule";
 import { isSchoolDay, getSchoolDayInfo } from "@/lib/schoolCalendar";
 
-describe("School calendar", () => {
-  it("Spring Break days are not school days", () => {
-    expect(isSchoolDay(new Date(2026, 2, 9))).toBe(false); // March 9 Mon
-    expect(isSchoolDay(new Date(2026, 2, 16))).toBe(false); // March 16 Mon
+describe("School calendar 2026-27", () => {
+  it("Labor Day is not a school day", () => {
+    expect(isSchoolDay(new Date(2026, 8, 7))).toBe(false);
   });
 
-  it("Good Friday is not a school day", () => {
-    expect(isSchoolDay(new Date(2026, 3, 3))).toBe(false); // April 3
+  it("Opening Day is a school day", () => {
+    expect(isSchoolDay(new Date(2026, 8, 8))).toBe(true);
   });
 
-  it("Early dismissal is still a school day", () => {
-    expect(isSchoolDay(new Date(2026, 2, 6))).toBe(true); // March 6
+  it("Yom Kippur is not a school day", () => {
+    expect(isSchoolDay(new Date(2026, 8, 21))).toBe(false);
   });
 
-  it("Spring Break has correct info", () => {
-    const info = getSchoolDayInfo(new Date(2026, 2, 10));
-    expect(info?.reason).toBe("Spring Break");
-    expect(info?.type).toBe("break");
+  it("Thanksgiving break days are off, Nov 24 is early dismissal", () => {
+    expect(isSchoolDay(new Date(2026, 10, 24))).toBe(true);
+    expect(isSchoolDay(new Date(2026, 10, 25))).toBe(false);
+    expect(isSchoolDay(new Date(2026, 10, 26))).toBe(false);
+  });
+
+  it("Winter break is off and classes resume Jan 4", () => {
+    expect(isSchoolDay(new Date(2026, 11, 21))).toBe(false);
+    expect(isSchoolDay(new Date(2026, 11, 31))).toBe(false);
+    expect(isSchoolDay(new Date(2027, 0, 4))).toBe(true);
+  });
+
+  it("Spring break is off and classes resume Mar 22", () => {
+    expect(isSchoolDay(new Date(2027, 2, 5))).toBe(true);
+    expect(isSchoolDay(new Date(2027, 2, 10))).toBe(false);
+    expect(isSchoolDay(new Date(2027, 2, 22))).toBe(true);
+  });
+
+  it("Good Friday and Memorial Day are off", () => {
+    expect(isSchoolDay(new Date(2027, 2, 26))).toBe(false);
+    expect(isSchoolDay(new Date(2027, 4, 31))).toBe(false);
+  });
+
+  it("Community Service Day has no classes", () => {
+    expect(isSchoolDay(new Date(2027, 3, 30))).toBe(false);
+    expect(getBlocksForDate(new Date(2027, 3, 30))).toEqual([]);
+  });
+
+  it("Exam days have no regular classes", () => {
+    expect(isSchoolDay(new Date(2027, 0, 12))).toBe(false);
+    expect(getSchoolDayInfo(new Date(2027, 5, 2))?.reason).toContain("Exam Week");
   });
 
   it("Normal school day returns null", () => {
-    expect(getSchoolDayInfo(new Date(2026, 2, 23))).toBeNull(); // March 23 Mon
+    expect(getSchoolDayInfo(new Date(2026, 8, 15))).toBeNull();
   });
 });
 
-describe("Schedule rotation with calendar", () => {
-  it("March 23, 2026 (Monday) = D,E,F,G,A", () => {
-    const blocks = getBlocksForDate(new Date(2026, 2, 23));
-    expect(blocks).toEqual(["D", "E", "F", "G", "A"]);
+describe("Block rotation 2026-27", () => {
+  it("Opening Day Sept 8, 2026 = A,B,C,D,E", () => {
+    expect(getBlocksForDate(new Date(2026, 8, 8))).toEqual(["A", "B", "C", "D", "E"]);
   });
 
-  it("April 27, 2026 (Monday) = G,A,B,C,D", () => {
-    const blocks = getBlocksForDate(new Date(2026, 3, 27));
-    expect(blocks).toEqual(["G", "A", "B", "C", "D"]);
+  it("Sept 9, 2026 = F,G,A,B,C", () => {
+    expect(getBlocksForDate(new Date(2026, 8, 9))).toEqual(["F", "G", "A", "B", "C"]);
   });
 
-  it("Community Service Day (April 24) is not a school day", () => {
-    expect(isSchoolDay(new Date(2026, 3, 24))).toBe(false);
-    expect(getBlocksForDate(new Date(2026, 3, 24))).toEqual([]);
+  it("Sept 14, 2026 (Mon) = G,A,B,C,D", () => {
+    expect(getBlocksForDate(new Date(2026, 8, 14))).toEqual(["G", "A", "B", "C", "D"]);
   });
 
-  it("Spring Break returns no blocks", () => {
-    expect(getBlocksForDate(new Date(2026, 2, 10))).toEqual([]);
+  it("rotation skips no-school days (Sept 21 Yom Kippur)", () => {
+    expect(getBlocksForDate(new Date(2026, 8, 21))).toEqual([]);
+    expect(getBlocksForDate(new Date(2026, 8, 22))).toEqual(["D", "E", "F", "G", "A"]);
   });
 
-  it("Spring Break returns no schedule slots", () => {
-    expect(getDaySchedule(new Date(2026, 2, 10))).toEqual([]);
+  it("first class of Opening Day starts at 8:10", () => {
+    const slots = getDaySchedule(new Date(2026, 8, 8));
+    const firstClass = slots.find((s) => s.type === "class");
+    expect(firstClass?.start).toBe("8:10");
+    expect(firstClass?.block).toBe("A");
   });
 
-  it("rotation skips Spring Break days", () => {
-    // March 5 (Thu) and March 6 (Fri) are school days before break
-    // March 23 (Mon) is first day back
-    // The rotation should skip all break days
-    const beforeBreak1 = getBlocksForDate(new Date(2026, 2, 5)); // Thu
-    const beforeBreak2 = getBlocksForDate(new Date(2026, 2, 6)); // Fri (early dismissal)
-    const afterBreak = getBlocksForDate(new Date(2026, 2, 23)); // Mon
-
-    // All should have blocks
-    expect(beforeBreak1.length).toBe(5);
-    expect(beforeBreak2.length).toBe(5);
-    expect(afterBreak).toEqual(["D", "E", "F", "G", "A"]);
-  });
-
-  it("Monday has assembly", () => {
-    const slots = getDaySchedule(new Date(2026, 2, 23));
-    expect(slots[0].type).toBe("assembly");
-  });
-
-  it("Wednesday has advisory then late start", () => {
-    const slots = getDaySchedule(new Date(2026, 2, 25));
-    expect(slots[0].type).toBe("advisory");
+  it("Wednesday has advisory at 8:45 then 9:10 start", () => {
+    const slots = getDaySchedule(new Date(2026, 8, 9));
     expect(slots[0].start).toBe("8:45");
     expect(slots[1].start).toBe("9:10");
   });
 
   it("every school day has 5 class slots", () => {
-    for (let d = 23; d <= 27; d++) {
-      const date = new Date(2026, 2, d);
-      const slots = getDaySchedule(date);
+    for (const d of [8, 9, 10, 11, 14]) {
+      const slots = getDaySchedule(new Date(2026, 8, d));
       expect(slots.filter((s) => s.type === "class")).toHaveLength(5);
     }
   });
 
   it("underclassman and upperclassman lunch differs", () => {
-    const mon = new Date(2026, 2, 23);
-    const uLunch = getDaySchedule(mon, "underclassman").find((s) => s.type === "lunch");
-    const oLunch = getDaySchedule(mon, "upperclassman").find((s) => s.type === "lunch");
-    expect(uLunch?.start).not.toBe(oLunch?.start);
+    const day = new Date(2026, 8, 14);
+    const u = getDaySchedule(day, "underclassman").find((s) => s.type === "lunch");
+    const o = getDaySchedule(day, "upperclassman").find((s) => s.type === "lunch");
+    expect(u?.start).not.toBe(o?.start);
   });
 });
