@@ -22,10 +22,8 @@ const ROTATION_CYCLE: Block[][] = [
   ["C", "D", "E", "F", "G"],
 ];
 
-// Reference: March 5, 2026 (Thu) = rotation index 0
-// March 6 (Fri) = index 1, then Spring Break is skipped
-// March 23 (Mon) = index 2 → D,E,F,G,A ✓
-const EPOCH = new Date(2026, 2, 5); // March 5, 2026
+// Reference: Opening Day — Tuesday, September 8, 2026 = rotation index 0 (A,B,C,D,E)
+const EPOCH = new Date(2026, 8, 8); // September 8, 2026
 
 import { isSchoolDay } from "./schoolCalendar";
 
@@ -73,112 +71,11 @@ function dateKey(date: Date): string {
 
 // Special-day overrides (graduation, exam review weeks, etc.)
 const DATE_OVERRIDES: Record<string, { blocks: Block[]; build: (lunchType: ClassType) => ScheduleSlot[] }> = {
-  // Wed May 20, 2026 — Day 1 A–E Adjusted Schedule (Graduation)
-  "2026-05-20": {
-    blocks: ["A", "B", "C", "D", "E"],
-    build: (lunchType) => {
-      const slots: ScheduleSlot[] = [
-        { label: "A", start: "9:10", end: "9:40", type: "class", block: "A" },
-        { label: "B", start: "9:50", end: "10:20", type: "class", block: "B" },
-        { label: "C", start: "10:30", end: "11:00", type: "class", block: "C" },
-        { label: "D", start: "11:10", end: "11:40", type: "class", block: "D" },
-      ];
-      if (lunchType === "underclassman") {
-        slots.push({ label: "E", start: "11:50", end: "12:20", type: "class", block: "E" });
-        slots.push({ label: "Lunch", start: "12:20", end: "12:35", type: "lunch" });
-      } else {
-        slots.push({ label: "Lunch", start: "11:50", end: "12:30", type: "lunch" });
-        slots.push({ label: "E", start: "12:35", end: "1:05", type: "class", block: "E" });
-      }
-      slots.push({ label: "Graduation", start: "3:00", end: "4:30", type: "assembly" });
-      return slots;
-    },
-  },
-  // Thu May 21, 2026 — Exam Review A → G
-  "2026-05-21": {
-    blocks: ["A", "B", "C", "D", "E", "F", "G"],
-    build: (lunchType) => {
-      const slots: ScheduleSlot[] = [
-        { label: "A", start: "8:10", end: "8:50", type: "class", block: "A" },
-        { label: "B", start: "9:00", end: "9:40", type: "class", block: "B" },
-        { label: "C", start: "9:50", end: "10:30", type: "class", block: "C" },
-        { label: "D", start: "10:40", end: "11:20", type: "class", block: "D" },
-      ];
-      if (lunchType === "underclassman") {
-        slots.push({ label: "E", start: "11:30", end: "12:10", type: "class", block: "E" });
-        slots.push({ label: "Lunch", start: "12:10", end: "12:40", type: "lunch" });
-      } else {
-        slots.push({ label: "Lunch", start: "11:20", end: "11:55", type: "lunch" });
-        slots.push({ label: "E", start: "11:55", end: "12:35", type: "class", block: "E" });
-      }
-      slots.push({ label: "F", start: "12:45", end: "1:25", type: "class", block: "F" });
-      slots.push({ label: "G", start: "1:35", end: "2:15", type: "class", block: "G" });
-      return slots;
-    },
-  },
-  // Fri May 22, 2026 — Exam Review G → A
-  "2026-05-22": {
-    blocks: ["G", "F", "E", "D", "C", "B", "A"],
-    build: (lunchType) => {
-      const slots: ScheduleSlot[] = [
-        { label: "G", start: "8:10", end: "8:50", type: "class", block: "G" },
-        { label: "F", start: "9:00", end: "9:40", type: "class", block: "F" },
-        { label: "E", start: "9:50", end: "10:30", type: "class", block: "E" },
-        { label: "D", start: "10:40", end: "11:20", type: "class", block: "D" },
-      ];
-      if (lunchType === "underclassman") {
-        slots.push({ label: "C", start: "11:30", end: "12:10", type: "class", block: "C" });
-        slots.push({ label: "Lunch", start: "12:10", end: "12:40", type: "lunch" });
-      } else {
-        slots.push({ label: "Lunch", start: "11:20", end: "11:55", type: "lunch" });
-        slots.push({ label: "C", start: "11:55", end: "12:35", type: "class", block: "C" });
-      }
-      slots.push({ label: "B", start: "12:45", end: "1:25", type: "class", block: "B" });
-      slots.push({ label: "A", start: "1:35", end: "2:15", type: "class", block: "A" });
-      return slots;
-    },
-  },
-  // Final Exam Week — May 26–29, 2026
-  "2026-05-26": {
+  // Tue June 8, 2027 — MS/US Closing Ceremony (last day of school)
+  "2027-06-08": {
     blocks: [],
     build: () => [
-      { label: "Science Exam", start: "9:00", end: "11:00", type: "assembly" },
-      { label: "English Exam", start: "1:00", end: "3:00", type: "assembly" },
-    ],
-  },
-  "2026-05-27": {
-    blocks: [],
-    build: () => [
-      { label: "History Exam", start: "9:00", end: "11:00", type: "assembly" },
-      { label: "Conflict Exams", start: "1:00", end: "3:00", type: "assembly" },
-    ],
-  },
-  "2026-05-28": {
-    blocks: [],
-    build: () => [
-      { label: "Mod. Lang. & Classics Exam", start: "9:00", end: "11:00", type: "assembly" },
-      { label: "Computer Science Exam", start: "1:00", end: "3:00", type: "assembly" },
-    ],
-  },
-  "2026-05-29": {
-    blocks: [],
-    build: () => [
-      { label: "Math Exam", start: "9:00", end: "11:00", type: "assembly" },
-      { label: "Conflict Exams", start: "1:00", end: "3:00", type: "assembly" },
-    ],
-  },
-  // Tue June 2, 2026 — Exam Return Day / Last Day of School (A–G short schedule)
-  "2026-06-02": {
-    blocks: ["A", "B", "C", "D", "E", "F", "G"],
-    build: () => [
-      { label: "A", start: "8:10", end: "8:20", type: "class", block: "A" },
-      { label: "B", start: "8:30", end: "8:40", type: "class", block: "B" },
-      { label: "C", start: "8:50", end: "9:00", type: "class", block: "C" },
-      { label: "D", start: "9:10", end: "9:20", type: "class", block: "D" },
-      { label: "E", start: "9:30", end: "9:40", type: "class", block: "E" },
-      { label: "F", start: "9:50", end: "10:00", type: "class", block: "F" },
-      { label: "G", start: "10:10", end: "10:20", type: "class", block: "G" },
-      { label: "US Closing Ceremonies", start: "11:00", end: "12:00", type: "assembly" },
+      { label: "US Closing Ceremony", start: "11:00", end: "12:00", type: "assembly" },
     ],
   },
 };
