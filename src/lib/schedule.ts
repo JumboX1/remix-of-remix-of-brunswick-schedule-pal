@@ -22,8 +22,8 @@ const ROTATION_CYCLE: Block[][] = [
   ["C", "D", "E", "F", "G"],
 ];
 
-// Reference: Opening Day — Tuesday, September 8, 2026 = rotation index 0 (A,B,C,D,E)
-const EPOCH = new Date(2026, 8, 8); // September 8, 2026
+// The printed 2026–27 planner resets Day 1 on Monday, September 14.
+const EPOCH = new Date(2026, 8, 14);
 
 import { isSchoolDay } from "./schoolCalendar";
 
@@ -69,8 +69,154 @@ function dateKey(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
-// Special-day overrides (graduation, exam review weeks, etc.)
+function standardMondayOrTuesday(
+  blocks: Block[],
+  lunchType: ClassType,
+  openingLabel: "Morning Meeting" | "Advisory",
+  midmorningLabel = "Flex"
+): ScheduleSlot[] {
+  const slots: ScheduleSlot[] = [
+    { label: openingLabel, start: "7:45", end: "8:00", type: "advisory" },
+    { label: blocks[0], start: "8:10", end: "9:10", type: "class", block: blocks[0] },
+    { label: blocks[1], start: "9:20", end: "10:20", type: "class", block: blocks[1] },
+    { label: midmorningLabel, start: "10:30", end: "10:55", type: "advisory" },
+    { label: blocks[2], start: "11:05", end: "11:55", type: "class", block: blocks[2] },
+  ];
+  if (lunchType === "underclassman") {
+    slots.push({ label: blocks[3], start: "12:05", end: "1:05", type: "class", block: blocks[3] });
+    slots.push({ label: "Lunch", start: "1:05", end: "1:30", type: "lunch" });
+  } else {
+    slots.push({ label: "Lunch", start: "11:55", end: "12:20", type: "lunch" });
+    slots.push({ label: blocks[3], start: "12:30", end: "1:30", type: "class", block: blocks[3] });
+  }
+  slots.push({ label: blocks[4], start: "1:40", end: "2:40", type: "class", block: blocks[4] });
+  return slots;
+}
+
+function standardWednesday(blocks: Block[], lunchType: ClassType): ScheduleSlot[] {
+  const slots: ScheduleSlot[] = [
+    { label: "Advisory", start: "8:45", end: "9:00", type: "advisory" },
+    { label: blocks[0], start: "9:10", end: "10:00", type: "class", block: blocks[0] },
+    { label: blocks[1], start: "10:10", end: "11:00", type: "class", block: blocks[1] },
+    { label: blocks[2], start: "11:10", end: "12:00", type: "class", block: blocks[2] },
+  ];
+  if (lunchType === "underclassman") {
+    slots.push({ label: blocks[3], start: "12:10", end: "1:00", type: "class", block: blocks[3] });
+    slots.push({ label: "Lunch", start: "1:00", end: "1:30", type: "lunch" });
+  } else {
+    slots.push({ label: "Lunch", start: "12:00", end: "12:30", type: "lunch" });
+    slots.push({ label: blocks[3], start: "12:30", end: "1:20", type: "class", block: blocks[3] });
+  }
+  slots.push({ label: blocks[4], start: "1:30", end: "2:20", type: "class", block: blocks[4] });
+  return slots;
+}
+
+function standardThursday(blocks: Block[], lunchType: ClassType, adjusted = false, assemblyStart = "10:30"): ScheduleSlot[] {
+  const slots: ScheduleSlot[] = [
+    { label: "Advisory", start: "7:45", end: "8:00", type: "advisory" },
+    { label: blocks[0], start: "8:10", end: adjusted ? "8:55" : "9:10", type: "class", block: blocks[0] },
+    { label: blocks[1], start: adjusted ? "9:05" : "9:20", end: adjusted ? "9:50" : "10:20", type: "class", block: blocks[1] },
+    { label: adjusted && assemblyStart === "10:10" ? "Clubs Assembly" : "Assembly", start: assemblyStart, end: "10:55", type: "assembly" },
+    { label: blocks[2], start: "11:05", end: "11:55", type: "class", block: blocks[2] },
+  ];
+  if (lunchType === "underclassman") {
+    slots.push({ label: blocks[3], start: "12:05", end: "1:05", type: "class", block: blocks[3] });
+    slots.push({ label: "Lunch", start: "1:05", end: "1:30", type: "lunch" });
+  } else {
+    slots.push({ label: "Lunch", start: "11:55", end: "12:20", type: "lunch" });
+    slots.push({ label: blocks[3], start: "12:30", end: "1:30", type: "class", block: blocks[3] });
+  }
+  slots.push({ label: blocks[4], start: "1:40", end: "2:40", type: "class", block: blocks[4] });
+  return slots;
+}
+
+function standardFriday(blocks: Block[], lunchType: ClassType): ScheduleSlot[] {
+  const slots: ScheduleSlot[] = [
+    { label: "Advisory", start: "7:45", end: "8:00", type: "advisory" },
+    { label: blocks[0], start: "8:10", end: "9:10", type: "class", block: blocks[0] },
+    { label: blocks[1], start: "9:20", end: "10:20", type: "class", block: blocks[1] },
+    { label: blocks[2], start: "10:30", end: "11:30", type: "class", block: blocks[2] },
+  ];
+  if (lunchType === "underclassman") {
+    slots.push({ label: blocks[3], start: "11:40", end: "12:40", type: "class", block: blocks[3] });
+    slots.push({ label: "Lunch", start: "12:40", end: "1:10", type: "lunch" });
+  } else {
+    slots.push({ label: "Lunch", start: "11:30", end: "11:55", type: "lunch" });
+    slots.push({ label: blocks[3], start: "12:05", end: "1:05", type: "class", block: blocks[3] });
+  }
+  slots.push({ label: blocks[4], start: "1:15", end: "2:15", type: "class", block: blocks[4] });
+  return slots;
+}
+
+// Special-day overrides transcribed from the printed 2026–27 daily planner.
 const DATE_OVERRIDES: Record<string, { blocks: Block[]; build: (lunchType: ClassType) => ScheduleSlot[] }> = {
+  "2026-09-08": {
+    blocks: ["A", "B", "C", "D", "E"],
+    build: (lunchType) => standardMondayOrTuesday(["A", "B", "C", "D", "E"], lunchType, "Advisory"),
+  },
+  "2026-09-17": {
+    blocks: ["B", "C", "D", "E", "F"],
+    build: (lunchType) => standardThursday(["B", "C", "D", "E", "F"], lunchType, true, "10:10"),
+  },
+  "2026-10-01": {
+    blocks: ["E", "F", "G", "A", "B"],
+    build: (lunchType) => standardThursday(["E", "F", "G", "A", "B"], lunchType, true, "10:00"),
+  },
+  "2026-10-13": {
+    blocks: ["E", "F", "G", "A", "B"],
+    build: (lunchType) => standardThursday(["E", "F", "G", "A", "B"], lunchType, true, "10:00"),
+  },
+  "2026-10-15": {
+    blocks: ["A", "B", "C", "D", "E"],
+    build: (lunchType) => standardThursday(["A", "B", "C", "D", "E"], lunchType, true, "10:30"),
+  },
+  "2026-10-29": {
+    blocks: ["B", "C", "D", "E", "F"],
+    build: (lunchType) => standardThursday(["B", "C", "D", "E", "F"], lunchType, true, "10:30"),
+  },
+  "2026-10-30": {
+    blocks: ["G", "A", "B", "C", "D"],
+    build: () => [
+      { label: "Arts Assembly", start: "8:10", end: "9:30", type: "assembly" },
+      { label: "G", start: "9:45", end: "10:25", type: "class", block: "G" },
+      { label: "A", start: "10:35", end: "11:15", type: "class", block: "A" },
+      { label: "B", start: "11:25", end: "12:05", type: "class", block: "B" },
+      { label: "Lunch", start: "12:05", end: "12:30", type: "lunch" },
+      { label: "C", start: "12:40", end: "1:20", type: "class", block: "C" },
+      { label: "D", start: "1:30", end: "2:10", type: "class", block: "D" },
+    ],
+  },
+  "2026-11-02": {
+    blocks: ["E", "F", "G", "A", "B"],
+    build: (lunchType) => standardMondayOrTuesday(["E", "F", "G", "A", "B"], lunchType, "Morning Meeting", "Advisory"),
+  },
+  "2026-11-05": {
+    blocks: ["F", "G", "A", "B", "C"],
+    build: (lunchType) => standardThursday(["F", "G", "A", "B", "C"], lunchType, true, "10:00"),
+  },
+  "2026-11-09": {
+    blocks: ["B", "C", "D", "E", "F"],
+    build: (lunchType) => standardMondayOrTuesday(["B", "C", "D", "E", "F"], lunchType, "Morning Meeting", "Advisory"),
+  },
+  "2026-11-12": {
+    blocks: ["C", "D", "E", "F", "G"],
+    build: (lunchType) => {
+      const slots: ScheduleSlot[] = [
+        { label: "Advisory", start: "7:45", end: "8:00", type: "advisory" },
+        { label: "Brunswick Film Trust", start: "8:00", end: "11:00", type: "assembly" },
+        { label: "E", start: "11:05", end: "11:55", type: "class", block: "E" },
+      ];
+      if (lunchType === "underclassman") {
+        slots.push({ label: "F", start: "12:05", end: "1:05", type: "class", block: "F" });
+        slots.push({ label: "Lunch", start: "1:05", end: "1:30", type: "lunch" });
+      } else {
+        slots.push({ label: "Lunch", start: "11:55", end: "12:20", type: "lunch" });
+        slots.push({ label: "F", start: "12:30", end: "1:30", type: "class", block: "F" });
+      }
+      slots.push({ label: "G", start: "1:40", end: "2:40", type: "class", block: "G" });
+      return slots;
+    },
+  },
   // Tue June 8, 2027 — MS/US Closing Ceremony (last day of school)
   "2027-06-08": {
     blocks: [],
@@ -118,92 +264,11 @@ export function getDaySchedule(
       ? (lunchOverride as ClassType)
       : classType;
 
-  if (dayOfWeek === 3) {
-    // WEDNESDAY — advisory then late-start 50-min classes
-    slots.push({ label: "Advisory", start: "8:45", end: "9:00", type: "advisory" });
-    slots.push({ label: blocks[0], start: "9:10", end: "10:00", type: "class", block: blocks[0] });
-    slots.push({ label: blocks[1], start: "10:10", end: "11:00", type: "class", block: blocks[1] });
-    slots.push({ label: blocks[2], start: "11:10", end: "12:00", type: "class", block: blocks[2] });
-
-    if (effectiveLunchType === "underclassman") {
-      slots.push({ label: blocks[3], start: "12:10", end: "1:00", type: "class", block: blocks[3] });
-      slots.push({ label: "Lunch", start: "1:00", end: "1:25", type: "lunch" });
-    } else {
-      slots.push({ label: "Lunch", start: "12:05", end: "12:25", type: "lunch" });
-      slots.push({ label: blocks[3], start: "12:30", end: "1:20", type: "class", block: blocks[3] });
-    }
-
-    slots.push({ label: blocks[4], start: "1:30", end: "2:20", type: "class", block: blocks[4] });
-  } else if (dayOfWeek === 1) {
-    // MONDAY — assembly at start, flex mid-day
-    slots.push({ label: "Assembly", start: "7:45", end: "8:00", type: "assembly" });
-    slots.push({ label: blocks[0], start: "8:10", end: "9:10", type: "class", block: blocks[0] });
-    slots.push({ label: blocks[1], start: "9:20", end: "10:20", type: "class", block: blocks[1] });
-    slots.push({ label: "Flex", start: "10:30", end: "10:55", type: "advisory" });
-    slots.push({ label: blocks[2], start: "11:05", end: "11:55", type: "class", block: blocks[2] });
-
-    if (effectiveLunchType === "underclassman") {
-      slots.push({ label: blocks[3], start: "12:05", end: "1:05", type: "class", block: blocks[3] });
-      slots.push({ label: "Lunch", start: "1:05", end: "1:35", type: "lunch" });
-    } else {
-      slots.push({ label: "Lunch", start: "12:00", end: "12:30", type: "lunch" });
-      slots.push({ label: blocks[3], start: "12:30", end: "1:30", type: "class", block: blocks[3] });
-    }
-
-    slots.push({ label: blocks[4], start: "1:40", end: "2:40", type: "class", block: blocks[4] });
-  } else if (dayOfWeek === 5) {
-    // FRIDAY — advisory at start, no flex
-    slots.push({ label: "Advisory", start: "7:45", end: "8:00", type: "advisory" });
-    slots.push({ label: blocks[0], start: "8:10", end: "9:10", type: "class", block: blocks[0] });
-    slots.push({ label: blocks[1], start: "9:20", end: "10:20", type: "class", block: blocks[1] });
-    slots.push({ label: blocks[2], start: "10:30", end: "11:30", type: "class", block: blocks[2] });
-
-    if (effectiveLunchType === "underclassman") {
-      slots.push({ label: blocks[3], start: "11:40", end: "12:40", type: "class", block: blocks[3] });
-      slots.push({ label: "Lunch", start: "12:40", end: "1:05", type: "lunch" });
-    } else {
-      slots.push({ label: "Lunch", start: "11:35", end: "12:05", type: "lunch" });
-      slots.push({ label: blocks[3], start: "12:05", end: "1:05", type: "class", block: blocks[3] });
-    }
-
-    slots.push({ label: blocks[4], start: "1:15", end: "2:15", type: "class", block: blocks[4] });
-  } else if (dayOfWeek === 2) {
-    // TUESDAY — advisory at start, flex mid-day
-    slots.push({ label: "Advisory", start: "7:45", end: "8:00", type: "advisory" });
-    slots.push({ label: blocks[0], start: "8:10", end: "9:10", type: "class", block: blocks[0] });
-    slots.push({ label: blocks[1], start: "9:20", end: "10:20", type: "class", block: blocks[1] });
-    slots.push({ label: "Flex", start: "10:30", end: "10:55", type: "advisory" });
-    slots.push({ label: blocks[2], start: "11:05", end: "11:55", type: "class", block: blocks[2] });
-
-    if (effectiveLunchType === "underclassman") {
-      slots.push({ label: blocks[3], start: "12:05", end: "1:05", type: "class", block: blocks[3] });
-      slots.push({ label: "Lunch", start: "1:05", end: "1:35", type: "lunch" });
-    } else {
-      slots.push({ label: "Lunch", start: "12:00", end: "12:30", type: "lunch" });
-      slots.push({ label: blocks[3], start: "12:30", end: "1:30", type: "class", block: blocks[3] });
-    }
-
-    slots.push({ label: blocks[4], start: "1:40", end: "2:40", type: "class", block: blocks[4] });
-  } else {
-    // THURSDAY — advisory at start, assembly mid-day
-    slots.push({ label: "Advisory", start: "7:45", end: "8:00", type: "advisory" });
-    slots.push({ label: blocks[0], start: "8:10", end: "9:10", type: "class", block: blocks[0] });
-    slots.push({ label: blocks[1], start: "9:20", end: "10:20", type: "class", block: blocks[1] });
-    slots.push({ label: "Assembly", start: "10:30", end: "10:55", type: "assembly" });
-    slots.push({ label: blocks[2], start: "11:05", end: "11:55", type: "class", block: blocks[2] });
-
-    if (effectiveLunchType === "underclassman") {
-      slots.push({ label: blocks[3], start: "12:05", end: "1:05", type: "class", block: blocks[3] });
-      slots.push({ label: "Lunch", start: "1:05", end: "1:35", type: "lunch" });
-    } else {
-      slots.push({ label: "Lunch", start: "12:00", end: "12:30", type: "lunch" });
-      slots.push({ label: blocks[3], start: "12:30", end: "1:30", type: "class", block: blocks[3] });
-    }
-
-    slots.push({ label: blocks[4], start: "1:40", end: "2:40", type: "class", block: blocks[4] });
-  }
-
-  return slots;
+  if (dayOfWeek === 1) return standardMondayOrTuesday(blocks, effectiveLunchType, "Morning Meeting");
+  if (dayOfWeek === 2) return standardMondayOrTuesday(blocks, effectiveLunchType, "Advisory");
+  if (dayOfWeek === 3) return standardWednesday(blocks, effectiveLunchType);
+  if (dayOfWeek === 4) return standardThursday(blocks, effectiveLunchType);
+  return standardFriday(blocks, effectiveLunchType);
 }
 
 export function getDayName(dayOfWeek: number): string {
