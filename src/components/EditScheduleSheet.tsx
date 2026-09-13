@@ -47,7 +47,7 @@ export function EditScheduleSheet({
         role="dialog"
         aria-modal="true"
         aria-labelledby="edit-schedule-title"
-        className="relative mt-auto flex max-h-[88vh] flex-col rounded-t-3xl bg-card shadow-2xl safe-bottom animate-in slide-in-from-bottom duration-300"
+        className="relative mt-auto flex max-h-[88dvh] flex-col overscroll-contain rounded-t-3xl bg-card shadow-2xl safe-bottom animate-in slide-in-from-bottom duration-300"
       >
         {/* Handle */}
         <div className="flex justify-center pt-3 pb-1">
