@@ -29,7 +29,6 @@ function getDefaults(): UserScheduleData {
     blockNames: Object.fromEntries(BLOCKS.map((b) => [b, ""])) as Record<Block, string>,
     blockColors: { ...BLOCK_COLOR_DEFAULTS },
     blockLunchOverrides: Object.fromEntries(BLOCKS.map((b) => [b, "default"])) as Record<Block, LunchOverride>,
-    studentName: "",
     onboarded: false,
   };
 }
@@ -67,9 +66,6 @@ export function useUserData() {
     setData((prev) => ({ ...prev, classType }));
   }, []);
 
-  const setStudentName = useCallback((studentName: string) => {
-    setData((prev) => ({ ...prev, studentName }));
-  }, []);
 
   const setOnboarded = useCallback((onboarded: boolean) => {
     setData((prev) => ({ ...prev, onboarded }));
@@ -90,7 +86,7 @@ export function useUserData() {
     data,
     updateBlockName,
     setClassType,
-    setStudentName,
+    
     setOnboarded,
     setBlockLunchOverride,
     resetAll,
