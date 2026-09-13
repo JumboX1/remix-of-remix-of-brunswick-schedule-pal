@@ -96,7 +96,7 @@ export default function SchedulePage() {
     day: "numeric",
   });
 
-  const noSchoolInfo = schoolInfo && schoolInfo.type !== "early_dismissal" ? schoolInfo : null;
+  const noSchoolInfo = schoolInfo && schoolInfo.type !== "early_dismissal" && slots.length === 0 ? schoolInfo : null;
 
   const greeting = noSchoolInfo
     ? noSchoolInfo.reason

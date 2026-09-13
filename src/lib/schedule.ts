@@ -22,8 +22,11 @@ const ROTATION_CYCLE: Block[][] = [
   ["C", "D", "E", "F", "G"],
 ];
 
-// The printed 2026–27 planner resets Day 1 on Monday, September 14.
-const EPOCH = new Date(2026, 8, 14);
+// The planner resets the rotation after each semester break.
+const ROTATION_ANCHORS = [
+  new Date(2026, 8, 14),
+  new Date(2027, 0, 20),
+];
 
 import { isSchoolDay } from "./schoolCalendar";
 
@@ -37,7 +40,8 @@ function isWeekend(date: Date): boolean {
  * Returns the rotation index (0-6).
  */
 export function getRotationIndex(date: Date): number {
-  const start = new Date(EPOCH);
+  const anchor = [...ROTATION_ANCHORS].reverse().find((candidate) => target >= candidate) ?? ROTATION_ANCHORS[0];
+  const start = new Date(anchor);
   start.setHours(0, 0, 0, 0);
   const target = new Date(date);
   target.setHours(0, 0, 0, 0);
@@ -67,6 +71,8 @@ export function getRotationIndex(date: Date): number {
 
 /** Planner-style day number (1-7) for a school day, or null when there's no school. */
 export function getRotationDayNumber(date: Date): number | null {
+  const override = DAY_NUMBER_OVERRIDES[dateKey(date)];
+  if (override !== undefined) return override;
   if (!isSchoolDay(date)) return null;
   return getRotationIndex(date) + 1;
 }
@@ -164,6 +170,58 @@ function standardFriday(blocks: Block[], lunchType: ClassType): ScheduleSlot[] {
   slots.push({ label: blocks[4], start: "1:15", end: "2:15", type: "class", block: blocks[4] });
   return slots;
 }
+
+function adjustedMondayOrTuesday(blocks: Block[], lunchType: ClassType, openingLabel: "Morning Meeting" | "Advisory"): ScheduleSlot[] {
+  const slots: ScheduleSlot[] = [
+    { label: openingLabel, start: "7:45", end: "8:00", type: "advisory" },
+    { label: blocks[0], start: "8:10", end: "8:55", type: "class", block: blocks[0] },
+    { label: blocks[1], start: "9:05", end: "9:50", type: "class", block: blocks[1] },
+    { label: "Flex", start: "10:00", end: "10:55", type: "advisory" },
+    { label: blocks[2], start: "11:05", end: "11:55", type: "class", block: blocks[2] },
+  ];
+  if (lunchType === "underclassman") {
+    slots.push({ label: blocks[3], start: "12:05", end: "1:05", type: "class", block: blocks[3] });
+    slots.push({ label: "Lunch", start: "1:05", end: "1:30", type: "lunch" });
+  } else {
+    slots.push({ label: "Lunch", start: "11:55", end: "12:20", type: "lunch" });
+    slots.push({ label: blocks[3], start: "12:30", end: "1:30", type: "class", block: blocks[3] });
+  }
+  slots.push({ label: blocks[4], start: "1:40", end: "2:40", type: "class", block: blocks[4] });
+  return slots;
+}
+
+function examReview(blocks: Block[], lunchType: ClassType): ScheduleSlot[] {
+  const slots: ScheduleSlot[] = [
+    { label: "Advisory", start: "7:45", end: "8:00", type: "advisory" },
+    ...blocks.slice(0, 4).map((block, index) => ({
+      label: block,
+      start: ["8:10", "9:00", "9:50", "10:40"][index],
+      end: ["8:50", "9:40", "10:30", "11:20"][index],
+      type: "class" as const,
+      block,
+    })),
+  ];
+  if (lunchType === "underclassman") {
+    slots.push({ label: blocks[4], start: "11:30", end: "12:10", type: "class", block: blocks[4] });
+    slots.push({ label: "Lunch", start: "12:10", end: "12:35", type: "lunch" });
+  } else {
+    slots.push({ label: "Lunch", start: "11:20", end: "11:45", type: "lunch" });
+    slots.push({ label: blocks[4], start: "11:55", end: "12:35", type: "class", block: blocks[4] });
+  }
+  slots.push({ label: blocks[5], start: "12:45", end: "1:25", type: "class", block: blocks[5] });
+  slots.push({ label: blocks[6], start: "1:35", end: "2:15", type: "class", block: blocks[6] });
+  return slots;
+}
+
+const DAY_NUMBER_OVERRIDES: Record<string, number | null> = {
+  "2027-01-07": null,
+  "2027-01-08": null,
+  "2027-01-12": null,
+  "2027-01-13": null,
+  "2027-01-14": null,
+  "2027-01-15": null,
+  "2027-01-19": null,
+};
 
 // Special-day overrides transcribed from the printed 2026–27 daily planner.
 const DATE_OVERRIDES: Record<string, { blocks: Block[]; build: (lunchType: ClassType) => ScheduleSlot[] }> = {
@@ -271,6 +329,143 @@ const DATE_OVERRIDES: Record<string, { blocks: Block[]; build: (lunchType: Class
       return slots.map((slot) => slot.block === "G" ? { ...slot, end: "9:00" } : slot);
     },
   },
+  "2026-11-24": {
+    blocks: ["A", "B", "C", "D", "E"],
+    build: (lunchType) => [
+      { label: "Advisory", start: "7:45", end: "8:00", type: "advisory" },
+      { label: "A", start: "8:10", end: "8:45", type: "class", block: "A" },
+      { label: "B", start: "8:55", end: "9:30", type: "class", block: "B" },
+      { label: "C", start: "9:40", end: "10:15", type: "class", block: "C" },
+      { label: "Thanksgiving Assembly", start: "10:25", end: "11:10", type: "assembly" },
+      ...(lunchType === "underclassman"
+        ? [{ label: "D", start: "11:20", end: "11:55", type: "class" as const, block: "D" as const }]
+        : [{ label: "D", start: "11:35", end: "12:10", type: "class" as const, block: "D" as const }]),
+      { label: "Lunch", start: "11:15", end: "12:15", type: "lunch" },
+      { label: "E", start: "12:20", end: "12:55", type: "class", block: "E" },
+    ],
+  },
+  "2026-11-30": {
+    blocks: ["F", "G", "A", "B", "C"],
+    build: (lunchType) => adjustedMondayOrTuesday(["F", "G", "A", "B", "C"], lunchType, "Morning Meeting"),
+  },
+  "2026-12-01": {
+    blocks: ["D", "E", "F", "G", "A"],
+    build: (lunchType) => adjustedMondayOrTuesday(["D", "E", "F", "G", "A"], lunchType, "Advisory"),
+  },
+  "2026-12-03": {
+    blocks: ["G", "A", "B", "C", "D"],
+    build: (lunchType) => standardThursday(["G", "A", "B", "C", "D"], lunchType, true, "10:00"),
+  },
+  "2026-12-17": {
+    blocks: ["A", "B", "C", "D", "E"],
+    build: (lunchType) => standardThursday(["A", "B", "C", "D", "E"], lunchType, true, "10:00"),
+  },
+  "2026-12-18": {
+    blocks: ["F", "G", "A", "B", "C"],
+    build: (lunchType) => [
+      { label: "Advisory", start: "7:45", end: "8:00", type: "advisory" },
+      { label: "Brunswick All-School Holiday Assembly", start: "8:15", end: "9:45", type: "assembly" },
+      { label: "F", start: "10:00", end: "10:25", type: "class", block: "F" },
+      { label: "G", start: "10:35", end: "11:00", type: "class", block: "G" },
+      ...(lunchType === "underclassman"
+        ? [{ label: "A", start: "11:10", end: "11:35", type: "class" as const, block: "A" as const }]
+        : [{ label: "A", start: "11:25", end: "11:50", type: "class" as const, block: "A" as const }]),
+      { label: "Lunch", start: "11:00", end: "12:00", type: "lunch" },
+      { label: "B", start: "12:00", end: "12:25", type: "class", block: "B" },
+      { label: "C", start: "12:35", end: "1:00", type: "class", block: "C" },
+    ],
+  },
+  "2027-01-07": {
+    blocks: ["A", "B", "C", "D", "E", "F", "G"],
+    build: (lunchType) => examReview(["A", "B", "C", "D", "E", "F", "G"], lunchType),
+  },
+  "2027-01-08": {
+    blocks: ["G", "F", "E", "D", "C", "B", "A"],
+    build: (lunchType) => examReview(["G", "F", "E", "D", "C", "B", "A"], lunchType),
+  },
+  "2027-01-12": {
+    blocks: [],
+    build: () => [
+      { label: "History Exam", start: "9:00", end: "11:00", type: "assembly" },
+      { label: "Computer Science Exam", start: "1:00", end: "3:00", type: "assembly" },
+    ],
+  },
+  "2027-01-13": {
+    blocks: [],
+    build: () => [
+      { label: "Modern Language & Classics Exam", start: "9:00", end: "11:00", type: "assembly" },
+      { label: "Conflict Exams", start: "1:00", end: "3:00", type: "assembly" },
+    ],
+  },
+  "2027-01-14": {
+    blocks: [],
+    build: () => [
+      { label: "Math Exam", start: "9:00", end: "11:00", type: "assembly" },
+      { label: "English Exam", start: "1:00", end: "3:00", type: "assembly" },
+    ],
+  },
+  "2027-01-15": {
+    blocks: [],
+    build: () => [
+      { label: "Science Exam", start: "9:00", end: "11:00", type: "assembly" },
+      { label: "Conflict Exams", start: "1:00", end: "3:00", type: "assembly" },
+    ],
+  },
+  "2027-01-19": {
+    blocks: ["A", "B", "C", "D", "E", "F", "G"],
+    build: () => [
+      { label: "Advisory", start: "7:45", end: "8:00", type: "advisory" },
+      ...(["A", "B", "C", "D", "E", "F", "G"] as Block[]).map((block, index) => ({
+        label: block,
+        start: ["8:10", "8:35", "9:00", "9:25", "9:50", "10:15", "10:40"][index],
+        end: ["8:25", "8:50", "9:15", "9:40", "10:05", "10:30", "10:55"][index],
+        type: "class" as const,
+        block,
+      })),
+      { label: "Lunch", start: "11:00", end: "11:50", type: "lunch" },
+      { label: "1-on-1 Advisee Meetings", start: "12:00", end: "2:00", type: "advisory" },
+    ],
+  },
+  "2027-01-21": {
+    blocks: ["F", "G", "A", "B", "C"],
+    build: (lunchType) => [
+      { label: "Advisory", start: "7:45", end: "8:00", type: "advisory" },
+      { label: "Assembly", start: "8:15", end: "9:30", type: "assembly" },
+      { label: "F", start: "9:40", end: "10:25", type: "class", block: "F" },
+      { label: "G", start: "10:35", end: "11:20", type: "class", block: "G" },
+      ...(lunchType === "underclassman"
+        ? [
+            { label: "A", start: "11:30", end: "12:15", type: "class" as const, block: "A" as const },
+            { label: "Lunch", start: "12:15", end: "12:45", type: "lunch" as const },
+          ]
+        : [
+            { label: "Lunch", start: "11:20", end: "11:50", type: "lunch" as const },
+            { label: "A", start: "12:00", end: "12:45", type: "class" as const, block: "A" as const },
+          ]),
+      { label: "B", start: "12:55", end: "1:40", type: "class", block: "B" },
+      { label: "C", start: "1:50", end: "2:35", type: "class", block: "C" },
+    ],
+  },
+  "2027-01-28": {
+    blocks: ["C", "D", "E", "F", "G"],
+    build: (lunchType) => [
+      { label: "Advisory", start: "7:45", end: "8:00", type: "advisory" },
+      { label: "C", start: "8:10", end: "8:55", type: "class", block: "C" },
+      { label: "D", start: "9:05", end: "9:50", type: "class", block: "D" },
+      { label: "Assembly", start: "10:00", end: "11:20", type: "assembly" },
+      ...(lunchType === "underclassman"
+        ? [
+            { label: "E", start: "11:30", end: "12:15", type: "class" as const, block: "E" as const },
+            { label: "Lunch", start: "12:15", end: "12:40", type: "lunch" as const },
+          ]
+        : [
+            { label: "Lunch", start: "11:20", end: "11:45", type: "lunch" as const },
+            { label: "E", start: "11:55", end: "12:40", type: "class" as const, block: "E" as const },
+          ]),
+      { label: "F", start: "12:50", end: "1:30", type: "class", block: "F" },
+      { label: "G", start: "1:40", end: "2:40", type: "class", block: "G" },
+    ],
+  },
   // Tue June 8, 2027 — MS/US Closing Ceremony (last day of school)
   "2027-06-08": {
     blocks: [],
@@ -281,9 +476,9 @@ const DATE_OVERRIDES: Record<string, { blocks: Block[]; build: (lunchType: Class
 };
 
 export function getBlocksForDate(date: Date): Block[] {
-  if (!isSchoolDay(date)) return [];
   const override = DATE_OVERRIDES[dateKey(date)];
   if (override) return override.blocks;
+  if (!isSchoolDay(date)) return [];
   return ROTATION_CYCLE[getRotationIndex(date)];
 }
 
@@ -292,8 +487,6 @@ export function getDaySchedule(
   classType: ClassType = "underclassman",
   blockLunchOverrides?: Record<Block, string>
 ): ScheduleSlot[] {
-  if (!isSchoolDay(date)) return [];
-
   const override = DATE_OVERRIDES[dateKey(date)];
   if (override) {
     // For overrides, use global classType for lunch (per-block override applies if 4th block matches)
@@ -305,6 +498,8 @@ export function getDaySchedule(
         : classType;
     return override.build(effectiveLunchType);
   }
+
+  if (!isSchoolDay(date)) return [];
 
   const dayOfWeek = date.getDay();
   const blocks = getBlocksForDate(date);
