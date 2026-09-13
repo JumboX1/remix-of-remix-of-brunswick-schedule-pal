@@ -190,7 +190,11 @@ export default function SchedulePage() {
           />
 
           {/* Schedule */}
-          <main className="flex-1 overflow-y-auto px-4 pb-24 no-scrollbar">
+          <main
+            className="flex-1 overflow-y-auto px-4 pb-24 no-scrollbar"
+            onTouchStart={onTouchStart}
+            onTouchEnd={onTouchEnd}
+          >
             <DayScheduleView
               slots={slots}
               blockNames={data.blockNames}
