@@ -1,5 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
-import { ScheduleSlot, Block } from "@/lib/schedule";
+import {
+  ScheduleSlot,
+  Block,
+  getNextSchoolDay,
+  getBlocksForDate,
+  getRotationDayNumber,
+} from "@/lib/schedule";
 
 interface WhatsNextTickerProps {
   slots: ScheduleSlot[];
@@ -38,6 +44,16 @@ export function WhatsNextTicker({ slots, blockNames, selectedDate }: WhatsNextTi
   }, []);
 
   const isToday = now.toDateString() === selectedDate.toDateString();
+
+  const nextDayInfo = useMemo(() => {
+    const next = getNextSchoolDay(selectedDate);
+    if (!next) return null;
+    return {
+      label: next.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" }),
+      blocks: getBlocksForDate(next),
+      dayNumber: getRotationDayNumber(next),
+    };
+  }, [selectedDate]);
 
   const tickerInfo = useMemo(() => {
     if (!isToday || slots.length === 0) return null;
@@ -101,7 +117,29 @@ export function WhatsNextTicker({ slots, blockNames, selectedDate }: WhatsNextTi
     return null;
   }, [now, isToday, slots, blockNames, selectedDate]);
 
-  if (!tickerInfo) return null;
+  const nextDayCard = nextDayInfo ? (
+    <div className="mt-2 flex items-center justify-between gap-3 rounded-xl border border-border/60 bg-card px-4 py-2.5">
+      <div className="min-w-0">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground/70">
+          Next school day
+        </p>
+        <p className="mt-0.5 truncate text-sm font-semibold text-foreground">{nextDayInfo.label}</p>
+      </div>
+      <div className="shrink-0 text-right">
+        {nextDayInfo.dayNumber && (
+          <p className="text-[10px] font-medium text-muted-foreground/70">Day {nextDayInfo.dayNumber}</p>
+        )}
+        <p className="text-xs font-bold tracking-[0.08em] text-primary">
+          {nextDayInfo.blocks.join(" · ")}
+        </p>
+      </div>
+    </div>
+  ) : null;
+
+  if (!tickerInfo) {
+    if (!isToday || slots.length > 0) return null;
+    return <div className="mx-4 mb-3">{nextDayCard}</div>;
+  }
 
   if (tickerInfo.status === "done") {
     return (
@@ -109,6 +147,7 @@ export function WhatsNextTicker({ slots, blockNames, selectedDate }: WhatsNextTi
         <div className="rounded-xl bg-secondary px-4 py-3">
           <p className="text-sm font-medium text-foreground">School's done for today</p>
         </div>
+        {nextDayCard}
       </div>
     );
   }

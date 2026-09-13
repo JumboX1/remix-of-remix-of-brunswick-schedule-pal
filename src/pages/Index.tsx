@@ -10,7 +10,7 @@ import { AlertBanner } from "@/components/AlertBanner";
 import { WhatsNextTicker } from "@/components/WhatsNextTicker";
 import { BottomTabs, AppTab } from "@/components/BottomTabs";
 import { useUserData } from "@/hooks/useUserData";
-import { getDaySchedule, getBlocksForDate, ClassType } from "@/lib/schedule";
+import { getDaySchedule, getBlocksForDate, getRotationDayNumber, ClassType } from "@/lib/schedule";
 import { getSchoolDayInfo, mergeDbCalendar } from "@/lib/schoolCalendar";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -40,6 +40,7 @@ export default function SchedulePage() {
     [selectedDate, data.classType, data.blockLunchOverrides]
   );
   const blocks = useMemo(() => getBlocksForDate(selectedDate), [selectedDate]);
+  const dayNumber = useMemo(() => getRotationDayNumber(selectedDate), [selectedDate]);
 
   const navigate = useCallback((delta: number) => {
     setSelectedDate((prev) => {
@@ -48,6 +49,27 @@ export default function SchedulePage() {
       return next;
     });
   }, []);
+
+  // Swipe left/right to move one day
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    const t = e.touches[0];
+    setTouchStart({ x: t.clientX, y: t.clientY });
+  }, []);
+  const onTouchEnd = useCallback(
+    (e: React.TouchEvent) => {
+      if (!touchStart) return;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - touchStart.x;
+      const dy = t.clientY - touchStart.y;
+      if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+        navigate(dx < 0 ? 1 : -1);
+        if (navigator.vibrate) navigator.vibrate(8);
+      }
+      setTouchStart(null);
+    },
+    [touchStart, navigate]
+  );
 
   // Onboarding: if not yet onboarded, show selection screen
   if (!data.onboarded) {
@@ -99,14 +121,21 @@ export default function SchedulePage() {
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
                 <h1 className="text-2xl leading-tight truncate">{greeting}</h1>
-                <p className="mt-0.5 text-sm text-muted-foreground font-sans">
-                  {subtitle}
-                  {blocks.length > 0 && (
-                    <span className="ml-2 text-xs tracking-wider text-muted-foreground/70">
-                      {blocks.join(" · ")}
+                <div className="mt-0.5 flex items-center gap-2">
+                  <p className="text-sm text-muted-foreground font-sans truncate">
+                    {subtitle}
+                    {blocks.length > 0 && (
+                      <span className="ml-2 text-xs tracking-wider text-muted-foreground/70">
+                        {blocks.join(" · ")}
+                      </span>
+                    )}
+                  </p>
+                  {dayNumber && (
+                    <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                      Day {dayNumber}
                     </span>
                   )}
-                </p>
+                </div>
               </div>
               <button
                 onClick={() => setEditOpen(true)}
@@ -161,7 +190,11 @@ export default function SchedulePage() {
           />
 
           {/* Schedule */}
-          <main className="flex-1 overflow-y-auto px-4 pb-24 no-scrollbar">
+          <main
+            className="flex-1 overflow-y-auto px-4 pb-24 no-scrollbar"
+            onTouchStart={onTouchStart}
+            onTouchEnd={onTouchEnd}
+          >
             <DayScheduleView
               slots={slots}
               blockNames={data.blockNames}
