@@ -62,6 +62,11 @@ describe("Block rotation 2026-27", () => {
     expect(getBlocksForDate(new Date(2026, 8, 9))).toEqual(["F", "G", "A", "B", "C"]);
   });
 
+  it("preserves the opening-week rotation before the planner resets Day 1", () => {
+    expect(getBlocksForDate(new Date(2026, 8, 10))).toEqual(["D", "E", "F", "G", "A"]);
+    expect(getBlocksForDate(new Date(2026, 8, 11))).toEqual(["B", "C", "D", "E", "F"]);
+  });
+
   it("Sept 14, 2026 starts the planner cycle at Day 1", () => {
     expect(getBlocksForDate(new Date(2026, 8, 14))).toEqual(["A", "B", "C", "D", "E"]);
   });
@@ -116,6 +121,12 @@ describe("Printed planner: Sept 14 through Nov 20", () => {
 
   it.each(expectedFirstBlocks)("matches the first block for %i/%i", (month, day, block) => {
     expect(getBlocksForDate(new Date(2026, month, day))[0]).toBe(block);
+  });
+
+  it.each(expectedFirstBlocks)("keeps five consecutive planner blocks for %i/%i", (month, day, firstBlock) => {
+    const start = ["A", "B", "C", "D", "E", "F", "G"].indexOf(firstBlock);
+    const expected = Array.from({ length: 5 }, (_, index) => ["A", "B", "C", "D", "E", "F", "G"][(start + index) % 7]);
+    expect(getBlocksForDate(new Date(2026, month, day))).toEqual(expected);
   });
 
   it("does not advance the rotation on photographed no-school days", () => {

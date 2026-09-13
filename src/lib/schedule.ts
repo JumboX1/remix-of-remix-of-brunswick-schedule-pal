@@ -158,6 +158,14 @@ const DATE_OVERRIDES: Record<string, { blocks: Block[]; build: (lunchType: Class
     blocks: ["F", "G", "A", "B", "C"],
     build: (lunchType) => standardWednesday(["F", "G", "A", "B", "C"], lunchType),
   },
+  "2026-09-10": {
+    blocks: ["D", "E", "F", "G", "A"],
+    build: (lunchType) => standardThursday(["D", "E", "F", "G", "A"], lunchType),
+  },
+  "2026-09-11": {
+    blocks: ["B", "C", "D", "E", "F"],
+    build: (lunchType) => standardFriday(["B", "C", "D", "E", "F"], lunchType),
+  },
   "2026-09-17": {
     blocks: ["B", "C", "D", "E", "F"],
     build: (lunchType) => {
@@ -282,7 +290,6 @@ export function getDaySchedule(
 
   const dayOfWeek = date.getDay();
   const blocks = getBlocksForDate(date);
-  const slots: ScheduleSlot[] = [];
 
   // Determine effective lunch type: per-block override for the 4th block, or global default
   const lunchBlock = blocks[3];
