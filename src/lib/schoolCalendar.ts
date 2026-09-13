@@ -110,4 +110,4 @@ export function isSchoolDay(date: Date): boolean {
   return false;
 }
 
-export const CALENDAR_LAST_UPDATED = "2026-09-04";
+export const CALENDAR_LAST_UPDATED = "2026-09-13";

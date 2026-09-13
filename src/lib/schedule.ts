@@ -154,9 +154,30 @@ const DATE_OVERRIDES: Record<string, { blocks: Block[]; build: (lunchType: Class
     blocks: ["A", "B", "C", "D", "E"],
     build: (lunchType) => standardMondayOrTuesday(["A", "B", "C", "D", "E"], lunchType, "Advisory"),
   },
+  "2026-09-09": {
+    blocks: ["F", "G", "A", "B", "C"],
+    build: (lunchType) => standardWednesday(["F", "G", "A", "B", "C"], lunchType),
+  },
   "2026-09-17": {
     blocks: ["B", "C", "D", "E", "F"],
-    build: (lunchType) => standardThursday(["B", "C", "D", "E", "F"], lunchType, true, "10:10"),
+    build: (lunchType) => {
+      const slots: ScheduleSlot[] = [
+        { label: "Advisory", start: "7:45", end: "8:00", type: "advisory" },
+        { label: "B", start: "8:10", end: "9:00", type: "class", block: "B" },
+        { label: "C", start: "9:10", end: "10:00", type: "class", block: "C" },
+        { label: "Clubs Assembly", start: "10:10", end: "10:55", type: "assembly" },
+        { label: "D", start: "11:05", end: "11:55", type: "class", block: "D" },
+      ];
+      if (lunchType === "underclassman") {
+        slots.push({ label: "E", start: "12:05", end: "1:05", type: "class", block: "E" });
+        slots.push({ label: "Lunch", start: "1:05", end: "1:30", type: "lunch" });
+      } else {
+        slots.push({ label: "Lunch", start: "11:55", end: "12:20", type: "lunch" });
+        slots.push({ label: "E", start: "12:30", end: "1:30", type: "class", block: "E" });
+      }
+      slots.push({ label: "F", start: "1:40", end: "2:40", type: "class", block: "F" });
+      return slots;
+    },
   },
   "2026-10-01": {
     blocks: ["E", "F", "G", "A", "B"],
@@ -215,6 +236,13 @@ const DATE_OVERRIDES: Record<string, { blocks: Block[]; build: (lunchType: Class
       }
       slots.push({ label: "G", start: "1:40", end: "2:40", type: "class", block: "G" });
       return slots;
+    },
+  },
+  "2026-11-19": {
+    blocks: ["G", "A", "B", "C", "D"],
+    build: (lunchType) => {
+      const slots = standardThursday(["G", "A", "B", "C", "D"], lunchType);
+      return slots.map((slot) => slot.block === "G" ? { ...slot, end: "9:00" } : slot);
     },
   },
   // Tue June 8, 2027 — MS/US Closing Ceremony (last day of school)
