@@ -41,6 +41,7 @@ export function MorePage({ onOpenEditSchedule }: MorePageProps) {
         {onOpenEditSchedule && (
           <div className="mt-4">
             <button
+              type="button"
               onClick={onOpenEditSchedule}
               className="flex w-full items-center gap-3.5 rounded-2xl bg-card border border-border/60 p-4 transition-all active:scale-[0.98] active:bg-secondary"
             >

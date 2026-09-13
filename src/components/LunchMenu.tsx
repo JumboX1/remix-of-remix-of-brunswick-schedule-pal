@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { ChevronLeft, ChevronRight, ExternalLink, Leaf, Loader2, UtensilsCrossed } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, ExternalLink, Leaf, Loader2, UtensilsCrossed } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const DINING_URL = "https://my.brunswickschool.org/calendars/dining";
@@ -191,7 +191,9 @@ export function LunchMenu() {
       <div className="px-4 py-2">
         <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={() => navigate(-1)}
+            aria-label="Previous day"
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full active:bg-secondary transition-colors"
           >
             <ChevronLeft className="h-4 w-4 text-muted-foreground" />
@@ -203,7 +205,9 @@ export function LunchMenu() {
             )}
           </div>
           <button
+            type="button"
             onClick={() => navigate(1)}
+            aria-label="Next day"
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full active:bg-secondary transition-colors"
           >
             <ChevronRight className="h-4 w-4 text-muted-foreground" />
@@ -213,6 +217,7 @@ export function LunchMenu() {
         {!isToday && (
           <div className="mt-1.5 flex justify-center">
             <button
+              type="button"
               onClick={() => setSelectedDate(new Date())}
               className="text-xs font-semibold text-accent active:opacity-70 transition-opacity"
             >
@@ -233,6 +238,7 @@ export function LunchMenu() {
           <div className="rounded-2xl bg-destructive/8 border border-destructive/15 p-5 text-center mt-2">
             <p className="text-sm font-medium text-destructive">{error}</p>
             <button
+                type="button"
               onClick={fetchMenu}
               className="mt-2.5 text-xs font-semibold text-accent active:opacity-70"
             >
@@ -283,7 +289,7 @@ export function LunchMenu() {
             const showWeekNotice = !isWeekend && !isClosed && inCurrentWeek && !weekHasAnyMenu;
             return (
               <div className="rounded-2xl bg-card border border-border/60 p-8 text-center mt-2">
-                <span className="text-3xl">
+                 <span aria-hidden="true" className="text-3xl">
                   {isWeekend ? "🛋️" : isClosed ? "🏫" : "📋"}
                 </span>
                 <p className="mt-3 text-sm font-semibold">
@@ -314,7 +320,7 @@ export function LunchMenu() {
           className="flex w-full items-center justify-between rounded-2xl bg-primary px-5 py-4 text-primary-foreground active:opacity-90 transition-opacity"
         >
           <div className="flex items-center gap-3.5">
-            <span className="text-xl">📅</span>
+            <CalendarDays aria-hidden="true" className="h-5 w-5" />
             <div>
               <p className="text-sm font-semibold tracking-tight">Full Calendar</p>
               <p className="text-xs opacity-50 mt-0.5">Opens in browser</p>
