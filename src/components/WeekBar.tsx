@@ -14,7 +14,8 @@ export function WeekBar({ selectedDate, onSelectDate }: WeekBarProps) {
     const d = new Date(selectedDate);
     const day = d.getDay();
     const monday = new Date(d);
-    monday.setDate(d.getDate() - ((day + 6) % 7));
+    // On weekends, show the upcoming week (the Monday ahead), not the week that just ended
+    monday.setDate(d.getDate() - ((day + 6) % 7) + (day === 0 || day === 6 ? 7 : 0));
     return Array.from({ length: 5 }, (_, i) => {
       const date = new Date(monday);
       date.setDate(monday.getDate() + i);
