@@ -121,6 +121,56 @@ describe("Printed planner: Nov 23 through Jan 29", () => {
   });
 });
 
+describe("Printed planner: Feb 1 through Apr 9", () => {
+  const photographedDays: Array<[number, number, number, Block]> = [
+    [1, 1, 2, "F"], [1, 2, 3, "D"], [1, 3, 4, "B"], [1, 4, 5, "G"], [1, 5, 6, "E"],
+    [1, 8, 7, "C"], [1, 9, 1, "A"], [1, 10, 2, "F"],
+    [1, 16, 3, "D"], [1, 17, 4, "B"], [1, 18, 5, "G"], [1, 19, 6, "E"],
+    [1, 22, 7, "C"], [1, 23, 1, "A"], [1, 24, 2, "F"], [1, 25, 3, "D"], [1, 26, 4, "B"],
+    [2, 1, 5, "G"], [2, 2, 6, "E"], [2, 3, 7, "C"], [2, 4, 1, "A"], [2, 5, 2, "F"],
+    [2, 22, 3, "D"], [2, 23, 4, "B"], [2, 24, 5, "G"], [2, 25, 6, "E"],
+    [2, 29, 7, "C"], [2, 30, 1, "A"], [2, 31, 2, "F"],
+    [3, 1, 3, "D"], [3, 2, 4, "B"], [3, 5, 5, "G"], [3, 6, 6, "E"], [3, 7, 7, "C"],
+    [3, 8, 1, "A"], [3, 9, 2, "F"],
+  ];
+
+  it.each(photographedDays)("matches rotation for 2027-%i-%i", (month, day, dayNumber, firstBlock) => {
+    const date = new Date(2027, month, day);
+    expect(getRotationDayNumber(date)).toBe(dayNumber);
+    expect(getBlocksForDate(date)[0]).toBe(firstBlock);
+  });
+
+  it("keeps the photographed long weekend, winter break, and Good Friday class-free", () => {
+    const noSchoolDates = [
+      new Date(2027, 1, 11), new Date(2027, 1, 12), new Date(2027, 1, 15),
+      new Date(2027, 2, 8), new Date(2027, 2, 12), new Date(2027, 2, 19),
+      new Date(2027, 2, 26),
+    ];
+    for (const date of noSchoolDates) {
+      expect(getRotationDayNumber(date)).toBeNull();
+      expect(getDaySchedule(date)).toEqual([]);
+    }
+  });
+
+  it.each([
+    [new Date(2027, 1, 4), "10:00"],
+    [new Date(2027, 1, 25), "10:10"],
+    [new Date(2027, 3, 8), "10:10"],
+  ] as const)("matches the adjusted Thursday on %s", (date, assemblyStart) => {
+    const schedule = getDaySchedule(date);
+    expect(schedule[1]).toMatchObject({ start: "8:10", end: "8:55" });
+    expect(schedule[2]).toMatchObject({ start: "9:05", end: "9:50" });
+    expect(schedule.find((slot) => slot.label === "Assembly")).toMatchObject({ start: assemblyStart, end: "10:55" });
+  });
+
+  it("preserves both grade lunch splits on adjusted days", () => {
+    const under = getDaySchedule(new Date(2027, 3, 8), "underclassman");
+    const upper = getDaySchedule(new Date(2027, 3, 8), "upperclassman");
+    expect(under.find((slot) => slot.type === "lunch")).toMatchObject({ start: "1:05", end: "1:30" });
+    expect(upper.find((slot) => slot.type === "lunch")).toMatchObject({ start: "11:55", end: "12:20" });
+  });
+});
+
 describe("Block rotation 2026-27", () => {
   it("Opening Day Sept 8, 2026 = A,B,C,D,E", () => {
     expect(getBlocksForDate(new Date(2026, 8, 8))).toEqual(["A", "B", "C", "D", "E"]);
