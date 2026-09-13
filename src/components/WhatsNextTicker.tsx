@@ -45,6 +45,16 @@ export function WhatsNextTicker({ slots, blockNames, selectedDate }: WhatsNextTi
 
   const isToday = now.toDateString() === selectedDate.toDateString();
 
+  const nextDayInfo = useMemo(() => {
+    const next = getNextSchoolDay(selectedDate);
+    if (!next) return null;
+    return {
+      label: next.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" }),
+      blocks: getBlocksForDate(next),
+      dayNumber: getRotationDayNumber(next),
+    };
+  }, [selectedDate]);
+
   const tickerInfo = useMemo(() => {
     if (!isToday || slots.length === 0) return null;
 
