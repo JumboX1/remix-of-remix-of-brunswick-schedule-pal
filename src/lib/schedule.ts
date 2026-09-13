@@ -40,11 +40,11 @@ function isWeekend(date: Date): boolean {
  * Returns the rotation index (0-6).
  */
 export function getRotationIndex(date: Date): number {
+  const target = new Date(date);
+  target.setHours(0, 0, 0, 0);
   const anchor = [...ROTATION_ANCHORS].reverse().find((candidate) => target >= candidate) ?? ROTATION_ANCHORS[0];
   const start = new Date(anchor);
   start.setHours(0, 0, 0, 0);
-  const target = new Date(date);
-  target.setHours(0, 0, 0, 0);
 
   let schoolDays = 0;
   const current = new Date(start);
