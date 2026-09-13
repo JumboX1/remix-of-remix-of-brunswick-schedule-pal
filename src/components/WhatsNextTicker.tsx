@@ -1,5 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
-import { ScheduleSlot, Block } from "@/lib/schedule";
+import {
+  ScheduleSlot,
+  Block,
+  getNextSchoolDay,
+  getBlocksForDate,
+  getRotationDayNumber,
+} from "@/lib/schedule";
 
 interface WhatsNextTickerProps {
   slots: ScheduleSlot[];
