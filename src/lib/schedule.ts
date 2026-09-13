@@ -139,7 +139,7 @@ function standardThursday(blocks: Block[], lunchType: ClassType, adjusted = fals
     { label: "Advisory", start: "7:45", end: "8:00", type: "advisory" },
     { label: blocks[0], start: "8:10", end: adjusted ? "8:55" : "9:10", type: "class", block: blocks[0] },
     { label: blocks[1], start: adjusted ? "9:05" : "9:20", end: adjusted ? "9:50" : "10:20", type: "class", block: blocks[1] },
-    { label: adjusted && assemblyStart === "10:10" ? "Clubs Assembly" : "Assembly", start: assemblyStart, end: "10:55", type: "assembly" },
+    { label: "Assembly", start: assemblyStart, end: "10:55", type: "assembly" },
     { label: blocks[2], start: "11:05", end: "11:55", type: "class", block: blocks[2] },
   ];
   if (lunchType === "underclassman") {
@@ -465,6 +465,18 @@ const DATE_OVERRIDES: Record<string, { blocks: Block[]; build: (lunchType: Class
       { label: "F", start: "12:50", end: "1:30", type: "class", block: "F" },
       { label: "G", start: "1:40", end: "2:40", type: "class", block: "G" },
     ],
+  },
+  "2027-02-04": {
+    blocks: ["G", "A", "B", "C", "D"],
+    build: (lunchType) => standardThursday(["G", "A", "B", "C", "D"], lunchType, true, "10:00"),
+  },
+  "2027-02-25": {
+    blocks: ["D", "E", "F", "G", "A"],
+    build: (lunchType) => standardThursday(["D", "E", "F", "G", "A"], lunchType, true, "10:10"),
+  },
+  "2027-04-08": {
+    blocks: ["A", "B", "C", "D", "E"],
+    build: (lunchType) => standardThursday(["A", "B", "C", "D", "E"], lunchType, true, "10:10"),
   },
   // Tue June 8, 2027 — MS/US Closing Ceremony (last day of school)
   "2027-06-08": {
