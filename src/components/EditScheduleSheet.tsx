@@ -109,10 +109,24 @@ export function EditScheduleSheet({
                   </div>
                   <input
                     type="text"
-                    value={data.blockNames[block]}
+                    value={data.blockNames[block] ?? ""}
                     onChange={(e) => onUpdateBlockName(block, e.target.value)}
+                    onFocus={(e) => {
+                      const el = e.currentTarget;
+                      window.setTimeout(
+                        () => el.scrollIntoView({ block: "center", behavior: "smooth" }),
+                        300
+                      );
+                    }}
+                    autoComplete="off"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    enterKeyHint="done"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") e.currentTarget.blur();
+                    }}
                     placeholder={`Block ${block}`}
-                    className="flex-1 rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition-colors placeholder:text-muted-foreground/40 focus:border-accent"
+                    className="w-full min-w-0 flex-1 rounded-xl border border-border bg-background px-3.5 py-2.5 text-base outline-none transition-colors placeholder:text-muted-foreground/40 focus:border-accent"
                   />
                 </div>
               ))}
