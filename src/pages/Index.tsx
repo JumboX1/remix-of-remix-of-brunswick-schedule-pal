@@ -1,8 +1,9 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Pencil } from "lucide-react";
+import { Calendar, ChevronLeft, ChevronRight, Pencil } from "lucide-react";
 import { DayScheduleView } from "@/components/DayScheduleView";
 import { WeekBar } from "@/components/WeekBar";
 import { EditScheduleSheet } from "@/components/EditScheduleSheet";
+import { MonthCalendarSheet } from "@/components/MonthCalendarSheet";
 import { LunchMenu } from "@/components/LunchMenu";
 import { MorePage } from "@/components/MorePage";
 import { OnboardingScreen } from "@/components/OnboardingScreen";
@@ -17,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 export default function SchedulePage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [editOpen, setEditOpen] = useState(false);
+  const [monthOpen, setMonthOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<AppTab>("schedule");
   const [calendarRevision, setCalendarRevision] = useState(0);
   const { data, updateBlockName, setClassType, setOnboarded, setBlockLunchOverride, resetAll } = useUserData();
