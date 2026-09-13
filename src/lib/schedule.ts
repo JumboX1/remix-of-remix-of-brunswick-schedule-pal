@@ -206,6 +206,7 @@ const DATE_OVERRIDES: Record<string, { blocks: Block[]; build: (lunchType: Class
   "2026-10-30": {
     blocks: ["G", "A", "B", "C", "D"],
     build: () => [
+      { label: "Advisory", start: "7:45", end: "8:00", type: "advisory" },
       { label: "Arts Assembly", start: "8:10", end: "9:30", type: "assembly" },
       { label: "G", start: "9:45", end: "10:25", type: "class", block: "G" },
       { label: "A", start: "10:35", end: "11:15", type: "class", block: "A" },
