@@ -146,14 +146,24 @@ export default function SchedulePage() {
                   )}
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setEditOpen(true)}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary transition-colors active:bg-border ml-3"
-                aria-label="Edit schedule"
-              >
-                <Pencil className="h-4 w-4 text-foreground" />
-              </button>
+              <div className="flex shrink-0 items-center gap-2 ml-3">
+                <button
+                  type="button"
+                  onClick={() => setMonthOpen(true)}
+                  className="flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground transition-colors active:bg-secondary"
+                  aria-label="Month view"
+                >
+                  <Calendar className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditOpen(true)}
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary transition-colors active:bg-border"
+                  aria-label="Edit schedule"
+                >
+                  <Pencil className="h-4 w-4 text-foreground" />
+                </button>
+              </div>
             </div>
           </header>
 
@@ -238,6 +248,13 @@ export default function SchedulePage() {
         onSetClassType={setClassType}
         onSetBlockLunchOverride={setBlockLunchOverride}
         onReset={resetAll}
+      />
+
+      <MonthCalendarSheet
+        open={monthOpen}
+        onClose={() => setMonthOpen(false)}
+        selectedDate={selectedDate}
+        onSelectDate={setSelectedDate}
       />
     </div>
   );
