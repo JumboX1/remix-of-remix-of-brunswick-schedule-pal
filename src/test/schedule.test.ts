@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getBlocksForDate, getDaySchedule, type Block } from "@/lib/schedule";
+import { getBlocksForDate, getDaySchedule, getRotationDayNumber, type Block } from "@/lib/schedule";
 import { isSchoolDay, getSchoolDayInfo } from "@/lib/schoolCalendar";
 
 describe("School calendar 2026-27", () => {
@@ -43,13 +43,81 @@ describe("School calendar 2026-27", () => {
     expect(getBlocksForDate(new Date(2027, 3, 30))).toEqual([]);
   });
 
-  it("Exam days have no regular classes", () => {
-    expect(isSchoolDay(new Date(2027, 0, 12))).toBe(false);
+  it("January exam days show their published schedules", () => {
+    expect(isSchoolDay(new Date(2027, 0, 12))).toBe(true);
+    expect(getDaySchedule(new Date(2027, 0, 12))).toHaveLength(2);
     expect(getSchoolDayInfo(new Date(2027, 5, 2))?.reason).toContain("Exam Week");
   });
 
   it("Normal school day returns null", () => {
     expect(getSchoolDayInfo(new Date(2026, 8, 15))).toBeNull();
+  });
+});
+
+describe("Printed planner: Nov 23 through Jan 29", () => {
+  it.each([
+    [new Date(2026, 10, 23), 7, "C"],
+    [new Date(2026, 10, 24), 1, "A"],
+    [new Date(2026, 10, 30), 2, "F"],
+    [new Date(2026, 11, 1), 3, "D"],
+    [new Date(2026, 11, 3), 5, "G"],
+    [new Date(2026, 11, 18), 2, "F"],
+    [new Date(2027, 0, 4), 3, "D"],
+    [new Date(2027, 0, 20), 1, "A"],
+    [new Date(2027, 0, 21), 2, "F"],
+    [new Date(2027, 0, 29), 1, "A"],
+  ] as const)("matches rotation on %s", (date, dayNumber, firstBlock) => {
+    expect(getRotationDayNumber(date)).toBe(dayNumber);
+    expect(getBlocksForDate(date)[0]).toBe(firstBlock);
+  });
+
+  it("keeps Thanksgiving and winter break free of classes", () => {
+    for (const date of [new Date(2026, 10, 25), new Date(2026, 10, 26), new Date(2026, 10, 27), new Date(2026, 11, 21), new Date(2027, 0, 1)]) {
+      expect(getDaySchedule(date)).toEqual([]);
+    }
+  });
+
+  it.each([
+    [new Date(2026, 10, 24), "Thanksgiving Assembly", "10:25", "11:10"],
+    [new Date(2026, 11, 3), "Assembly", "10:00", "10:55"],
+    [new Date(2026, 11, 17), "Assembly", "10:00", "10:55"],
+    [new Date(2026, 11, 18), "Brunswick All-School Holiday Assembly", "8:15", "9:45"],
+    [new Date(2027, 0, 21), "Assembly", "8:15", "9:30"],
+    [new Date(2027, 0, 28), "Assembly", "10:00", "11:20"],
+  ] as const)("matches the photographed special event on %s", (date, label, start, end) => {
+    expect(getDaySchedule(date).find((slot) => slot.label === label)).toMatchObject({ start, end });
+  });
+
+  it("matches both exam-review days", () => {
+    expect(getBlocksForDate(new Date(2027, 0, 7))).toEqual(["A", "B", "C", "D", "E", "F", "G"]);
+    expect(getBlocksForDate(new Date(2027, 0, 8))).toEqual(["G", "F", "E", "D", "C", "B", "A"]);
+    expect(getDaySchedule(new Date(2027, 0, 7)).at(-1)).toMatchObject({ label: "G", start: "1:35", end: "2:15" });
+    expect(getRotationDayNumber(new Date(2027, 0, 7))).toBeNull();
+  });
+
+  it.each([
+    [12, "History Exam", "Computer Science Exam"],
+    [13, "Modern Language & Classics Exam", "Conflict Exams"],
+    [14, "Math Exam", "English Exam"],
+    [15, "Science Exam", "Conflict Exams"],
+  ] as const)("matches January %i exams", (day, morning, afternoon) => {
+    expect(getDaySchedule(new Date(2027, 0, day))).toEqual([
+      { label: morning, start: "9:00", end: "11:00", type: "assembly" },
+      { label: afternoon, start: "1:00", end: "3:00", type: "assembly" },
+    ]);
+  });
+
+  it("matches Exam Return Day", () => {
+    const schedule = getDaySchedule(new Date(2027, 0, 19));
+    expect(schedule.filter((slot) => slot.type === "class")).toHaveLength(7);
+    expect(schedule.find((slot) => slot.label === "1-on-1 Advisee Meetings")).toMatchObject({ start: "12:00", end: "2:00" });
+  });
+
+  it("matches adjusted lunch splits", () => {
+    const jan28Under = getDaySchedule(new Date(2027, 0, 28), "underclassman");
+    const jan28Upper = getDaySchedule(new Date(2027, 0, 28), "upperclassman");
+    expect(jan28Under.find((slot) => slot.type === "lunch")).toMatchObject({ start: "12:15", end: "12:40" });
+    expect(jan28Upper.find((slot) => slot.type === "lunch")).toMatchObject({ start: "11:20", end: "11:45" });
   });
 });
 

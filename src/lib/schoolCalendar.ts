@@ -49,8 +49,8 @@ const CALENDAR_DATA: Record<string, SchoolDayInfo> = {
   "2027-01-01": { reason: "New Year's Day", type: "holiday" },
 
   // --- Winter ---
-  "2027-01-11": { reason: "Exam Study Day – No School", type: "noschool" },
-  "2027-01-12": { reason: "Exam Day – No Regular Classes", type: "noschool" },
+  "2027-01-11": { reason: "US Reading Day – No School", type: "noschool" },
+  ...range([2027, 1, 12], [2027, 1, 15], { reason: "US Exams", type: "early_dismissal" }),
   "2027-01-18": { reason: "Martin Luther King Jr. Day", type: "holiday" },
 
   // --- Presidents' Weekend (Feb 10 regular dismissal, classes resume Feb 16) ---
