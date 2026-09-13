@@ -210,7 +210,8 @@ describe("Printed planner: Apr 12 through Jun 8", () => {
       .toEqual(["E:8:10-9:10", "F:9:20-10:20", "G:10:30-11:30", "A:11:40-12:40", "B:1:15-2:15"]);
     expect(getDaySchedule(new Date(2027, 4, 19), "underclassman").find((slot) => slot.label === "E")).toMatchObject({ start: "11:50", end: "12:20" });
     expect(getDaySchedule(new Date(2027, 4, 19), "upperclassman").find((slot) => slot.label === "E")).toMatchObject({ start: "12:35", end: "1:05" });
-    expect(getDaySchedule(new Date(2027, 4, 20)).find((slot) => slot.label === "GA Graduation")).toMatchObject({ start: "3:00" });
+    expect(getDaySchedule(new Date(2027, 4, 20)).filter((slot) => slot.type === "class").map((slot) => slot.label))
+      .toEqual(["F", "G", "A", "B", "C"]);
   });
 
   it("matches both May exam-review days", () => {
@@ -237,7 +238,7 @@ describe("Printed planner: Apr 12 through Jun 8", () => {
     expect(schedule.filter((slot) => slot.type === "class")).toHaveLength(7);
     expect(schedule.find((slot) => slot.label === "A")).toMatchObject({ start: "8:10", end: "8:20" });
     expect(schedule.find((slot) => slot.label === "G")).toMatchObject({ start: "10:10", end: "10:20" });
-    expect(schedule.find((slot) => slot.label === "US Closing Ceremony")).toMatchObject({ start: "11:00", end: "12:00" });
+    expect(schedule.find((slot) => slot.label === "US Closing Ceremonies")).toMatchObject({ start: "11:00", end: "12:00" });
   });
 });
 

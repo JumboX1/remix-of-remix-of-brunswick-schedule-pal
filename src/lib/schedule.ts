@@ -498,8 +498,6 @@ const DATE_OVERRIDES: Record<string, { blocks: Block[]; build: (lunchType: Class
     build: (lunchType) => [
       { label: "Morning Meeting", start: "7:45", end: "8:00", type: "advisory" },
       ...standardFriday(["E", "F", "G", "A", "B"], lunchType).slice(1),
-      { label: "Senior Awards", start: "3:00", end: "4:00", type: "assembly" },
-      { label: "Senior Faculty Dinner", start: "5:00", end: "7:00", type: "assembly" },
     ],
   },
   "2027-05-19": {
@@ -519,7 +517,6 @@ const DATE_OVERRIDES: Record<string, { blocks: Block[]; build: (lunchType: Class
             { label: "Lunch", start: "11:40", end: "12:25", type: "lunch" as const },
             { label: "E", start: "12:35", end: "1:05", type: "class" as const, block: "E" as const },
           ]),
-      { label: "Graduation", start: "3:00", end: "4:30", type: "assembly" },
     ],
   },
   "2027-05-20": {
@@ -527,7 +524,6 @@ const DATE_OVERRIDES: Record<string, { blocks: Block[]; build: (lunchType: Class
     build: (lunchType) => [
       { label: "Advisory", start: "7:45", end: "8:00", type: "advisory" },
       ...standardFriday(["F", "G", "A", "B", "C"], lunchType).slice(1),
-      { label: "GA Graduation", start: "3:00", end: "4:30", type: "assembly" },
     ],
   },
   "2027-05-27": {
@@ -578,8 +574,7 @@ const DATE_OVERRIDES: Record<string, { blocks: Block[]; build: (lunchType: Class
         type: "class" as const,
         block,
       })),
-      { label: "US Closing Ceremony", start: "11:00", end: "12:00", type: "assembly" },
-      { label: "Junior Prom", start: "8:00", end: "11:00", type: "assembly" },
+      { label: "US Closing Ceremonies", start: "11:00", end: "12:00", type: "assembly" },
     ],
   },
 };
