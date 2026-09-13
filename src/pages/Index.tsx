@@ -10,7 +10,7 @@ import { AlertBanner } from "@/components/AlertBanner";
 import { WhatsNextTicker } from "@/components/WhatsNextTicker";
 import { BottomTabs, AppTab } from "@/components/BottomTabs";
 import { useUserData } from "@/hooks/useUserData";
-import { getDaySchedule, getBlocksForDate, ClassType } from "@/lib/schedule";
+import { getDaySchedule, getBlocksForDate, getRotationDayNumber, ClassType } from "@/lib/schedule";
 import { getSchoolDayInfo, mergeDbCalendar } from "@/lib/schoolCalendar";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -40,6 +40,7 @@ export default function SchedulePage() {
     [selectedDate, data.classType, data.blockLunchOverrides]
   );
   const blocks = useMemo(() => getBlocksForDate(selectedDate), [selectedDate]);
+  const dayNumber = useMemo(() => getRotationDayNumber(selectedDate), [selectedDate]);
 
   const navigate = useCallback((delta: number) => {
     setSelectedDate((prev) => {
@@ -48,6 +49,27 @@ export default function SchedulePage() {
       return next;
     });
   }, []);
+
+  // Swipe left/right to move one day
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    const t = e.touches[0];
+    setTouchStart({ x: t.clientX, y: t.clientY });
+  }, []);
+  const onTouchEnd = useCallback(
+    (e: React.TouchEvent) => {
+      if (!touchStart) return;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - touchStart.x;
+      const dy = t.clientY - touchStart.y;
+      if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+        navigate(dx < 0 ? 1 : -1);
+        if (navigator.vibrate) navigator.vibrate(8);
+      }
+      setTouchStart(null);
+    },
+    [touchStart, navigate]
+  );
 
   // Onboarding: if not yet onboarded, show selection screen
   if (!data.onboarded) {
