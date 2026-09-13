@@ -33,16 +33,40 @@ function getDefaults(): UserScheduleData {
   };
 }
 
+function restoreData(value: unknown): UserScheduleData {
+  const defaults = getDefaults();
+  if (!value || typeof value !== "object") return defaults;
+  const stored = value as Partial<UserScheduleData>;
+  const classType = stored.classType === "upperclassman" ? "upperclassman" : "underclassman";
+  const blockNames = stored.blockNames && typeof stored.blockNames === "object" ? stored.blockNames : {};
+  const blockLunchOverrides = stored.blockLunchOverrides && typeof stored.blockLunchOverrides === "object"
+    ? stored.blockLunchOverrides
+    : {};
+
+  return {
+    ...defaults,
+    classType,
+    onboarded: stored.onboarded === true,
+    blockNames: Object.fromEntries(BLOCKS.map((block) => [
+      block,
+      typeof blockNames[block] === "string" ? blockNames[block] : "",
+    ])) as Record<Block, string>,
+    blockLunchOverrides: Object.fromEntries(BLOCKS.map((block) => {
+      const override = blockLunchOverrides[block];
+      return [block, override === "underclassman" || override === "upperclassman" ? override : "default"];
+    })) as Record<Block, LunchOverride>,
+  };
+}
+
 export function useUserData() {
   const [data, setData] = useState<UserScheduleData>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        const parsed = JSON.parse(stored);
-        return { ...getDefaults(), ...parsed };
+        return restoreData(JSON.parse(stored));
       }
-    } catch {
-      // ignore
+    } catch (error) {
+      console.warn("Saved schedule data could not be restored.", error);
     }
     return getDefaults();
   });
@@ -50,8 +74,8 @@ export function useUserData() {
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    } catch {
-      // storage full
+    } catch (error) {
+      console.warn("Schedule changes could not be saved on this device.", error);
     }
   }, [data]);
 

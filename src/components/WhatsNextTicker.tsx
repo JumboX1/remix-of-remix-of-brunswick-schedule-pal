@@ -190,6 +190,11 @@ export function WhatsNextTicker({ slots, blockNames, selectedDate }: WhatsNextTi
         {/* Progress bar */}
         <div className={`mt-3 h-1.5 w-full rounded-full ${barBg} overflow-hidden`}>
           <div
+            role="progressbar"
+            aria-label={`${tickerInfo.currentLabel} progress`}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(tickerInfo.progress * 100)}
             className={`h-full rounded-full ${barFill} transition-all duration-1000 ease-linear`}
             style={{ width: `${tickerInfo.progress * 100}%` }}
           />

@@ -15,12 +15,14 @@ const TABS: { id: AppTab; label: string; Icon: typeof CalendarDays }[] = [
 
 export function BottomTabs({ active, onChange }: BottomTabsProps) {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur-lg safe-bottom">
+    <nav aria-label="Main navigation" className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur-lg safe-bottom">
       <div className="mx-auto flex max-w-lg">
         {TABS.map(({ id, label, Icon }) => (
           <button
+            type="button"
             key={id}
             onClick={() => onChange(id)}
+            aria-current={active === id ? "page" : undefined}
             className={`flex flex-1 flex-col items-center gap-0.5 pb-1 pt-2.5 transition-colors ${
               active === id ? "text-accent" : "text-muted-foreground"
             }`}

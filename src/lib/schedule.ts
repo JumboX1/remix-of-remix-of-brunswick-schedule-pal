@@ -345,9 +345,14 @@ const DATE_OVERRIDES: Record<string, { blocks: Block[]; build: (lunchType: Class
       { label: "C", start: "9:40", end: "10:15", type: "class", block: "C" },
       { label: "Thanksgiving Assembly", start: "10:25", end: "11:10", type: "assembly" },
       ...(lunchType === "underclassman"
-        ? [{ label: "D", start: "11:20", end: "11:55", type: "class" as const, block: "D" as const }]
-        : [{ label: "D", start: "11:35", end: "12:10", type: "class" as const, block: "D" as const }]),
-      { label: "Lunch", start: "11:15", end: "12:15", type: "lunch" },
+        ? [
+            { label: "D", start: "11:20", end: "11:55", type: "class" as const, block: "D" as const },
+            { label: "Lunch", start: "11:55", end: "12:15", type: "lunch" as const },
+          ]
+        : [
+            { label: "Lunch", start: "11:15", end: "11:35", type: "lunch" as const },
+            { label: "D", start: "11:35", end: "12:10", type: "class" as const, block: "D" as const },
+          ]),
       { label: "E", start: "12:20", end: "12:55", type: "class", block: "E" },
     ],
   },
@@ -375,9 +380,14 @@ const DATE_OVERRIDES: Record<string, { blocks: Block[]; build: (lunchType: Class
       { label: "F", start: "10:00", end: "10:25", type: "class", block: "F" },
       { label: "G", start: "10:35", end: "11:00", type: "class", block: "G" },
       ...(lunchType === "underclassman"
-        ? [{ label: "A", start: "11:10", end: "11:35", type: "class" as const, block: "A" as const }]
-        : [{ label: "A", start: "11:25", end: "11:50", type: "class" as const, block: "A" as const }]),
-      { label: "Lunch", start: "11:00", end: "12:00", type: "lunch" },
+        ? [
+            { label: "A", start: "11:10", end: "11:35", type: "class" as const, block: "A" as const },
+            { label: "Lunch", start: "11:35", end: "12:00", type: "lunch" as const },
+          ]
+        : [
+            { label: "Lunch", start: "11:00", end: "11:25", type: "lunch" as const },
+            { label: "A", start: "11:25", end: "11:50", type: "class" as const, block: "A" as const },
+          ]),
       { label: "B", start: "12:00", end: "12:25", type: "class", block: "B" },
       { label: "C", start: "12:35", end: "1:00", type: "class", block: "C" },
     ],

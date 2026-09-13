@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { ScheduleSlot, Block, getDaySchedule, getBlocksForDate, ClassType } from "@/lib/schedule";
 import { getSchoolDayInfo, isSchoolDay } from "@/lib/schoolCalendar";
 
@@ -12,9 +13,15 @@ interface DayScheduleViewProps {
 
 export function DayScheduleView({ slots, blockNames, isWeekend, selectedDate, classType = "underclassman", blockLunchOverrides }: DayScheduleViewProps) {
   const schoolInfo = getSchoolDayInfo(selectedDate);
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   // No school (non-weekend)
-  if (!isWeekend && schoolInfo && schoolInfo.type !== "early_dismissal") {
+  if (!isWeekend && slots.length === 0 && schoolInfo && schoolInfo.type !== "early_dismissal") {
     return (
       <div className="flex flex-col items-center justify-center py-16">
         <p className="text-lg font-serif text-foreground">{schoolInfo.reason}</p>
@@ -30,7 +37,6 @@ export function DayScheduleView({ slots, blockNames, isWeekend, selectedDate, cl
     return <WeekendPreview selectedDate={selectedDate} blockNames={blockNames} classType={classType} blockLunchOverrides={blockLunchOverrides} />;
   }
 
-  const now = new Date();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
   const isSameDay = now.toDateString() === selectedDate.toDateString();
 
@@ -59,7 +65,7 @@ export function DayScheduleView({ slots, blockNames, isWeekend, selectedDate, cl
 
         return (
           <div
-            key={i}
+            key={`${slot.label}-${slot.start}-${slot.end}`}
             className={`flex items-stretch rounded-xl transition-all active:scale-[0.98] ${
               slot.type === "assembly"
                 ? "bg-primary text-primary-foreground shadow-sm"
@@ -172,7 +178,7 @@ function WeekendPreview({
 
         if (noSchool || !isSchoolDay(date)) {
           return (
-            <div key={i} className="rounded-xl border border-border bg-card px-4 py-3">
+          <div key={toDateKey(date)} className="rounded-xl border border-border bg-card px-4 py-3">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-semibold text-foreground">{DAY_NAMES[date.getDay()]}</p>
@@ -185,7 +191,7 @@ function WeekendPreview({
         }
 
         return (
-          <div key={i} className="rounded-xl border border-border bg-card overflow-hidden">
+          <div key={toDateKey(date)} className="rounded-xl border border-border bg-card overflow-hidden">
             <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-secondary/30">
               <div>
                 <p className="text-sm font-semibold text-foreground">{DAY_NAMES[date.getDay()]}</p>
@@ -200,7 +206,7 @@ function WeekendPreview({
               {daySlots.map((slot, j) => {
                 const className = slot.block ? blockNames[slot.block] : "";
                 return (
-                  <div key={j} className="flex items-center gap-3 px-4 py-2">
+                  <div key={`${slot.label}-${slot.start}-${slot.end}`} className="flex items-center gap-3 px-4 py-2">
                     <span className="w-14 shrink-0 text-[11px] tabular-nums text-muted-foreground">{slot.start}</span>
                     {slot.block && (
                       <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded text-[10px] font-bold ${
@@ -221,4 +227,8 @@ function WeekendPreview({
       })}
     </div>
   );
+}
+
+function toDateKey(date: Date): string {
+  return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
 }
