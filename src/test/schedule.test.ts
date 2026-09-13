@@ -171,6 +171,76 @@ describe("Printed planner: Feb 1 through Apr 9", () => {
   });
 });
 
+describe("Printed planner: Apr 12 through Jun 8", () => {
+  const photographedDays: Array<[number, number, number, Block]> = [
+    [3, 12, 3, "D"], [3, 13, 4, "B"], [3, 14, 5, "G"], [3, 15, 6, "E"], [3, 16, 7, "C"],
+    [3, 19, 1, "A"], [3, 20, 2, "F"], [3, 21, 3, "D"], [3, 22, 4, "B"], [3, 23, 5, "G"],
+    [3, 26, 6, "E"], [3, 27, 7, "C"], [3, 28, 1, "A"], [3, 29, 2, "F"],
+    [4, 3, 3, "D"], [4, 4, 4, "B"], [4, 5, 5, "G"], [4, 6, 6, "E"], [4, 7, 7, "C"],
+    [4, 10, 1, "A"], [4, 11, 2, "F"], [4, 12, 3, "D"], [4, 13, 4, "B"], [4, 14, 5, "G"],
+    [4, 17, 6, "E"], [4, 18, 7, "C"], [4, 19, 1, "A"], [4, 20, 2, "F"], [4, 21, 3, "D"],
+    [4, 24, 4, "B"], [4, 25, 5, "G"], [4, 26, 6, "E"],
+  ];
+
+  it.each(photographedDays)("matches final-term rotation for 2027-%i-%i", (month, day, dayNumber, firstBlock) => {
+    const date = new Date(2027, month, day);
+    expect(getRotationDayNumber(date)).toBe(dayNumber);
+    expect(getBlocksForDate(date)[0]).toBe(firstBlock);
+  });
+
+  it.each([
+    [new Date(2027, 3, 15), "10:00"],
+    [new Date(2027, 3, 29), "10:10"],
+  ] as const)("matches late-April adjusted Thursday on %s", (date, assemblyStart) => {
+    const schedule = getDaySchedule(date);
+    expect(schedule[1]).toMatchObject({ start: "8:10", end: "8:55" });
+    expect(schedule[2]).toMatchObject({ start: "9:05", end: "9:50" });
+    expect(schedule.find((slot) => slot.label === "Assembly")).toMatchObject({ start: assemblyStart, end: "10:55" });
+  });
+
+  it("keeps Community Service Day, Memorial Day, and June 7 class-free", () => {
+    for (const date of [new Date(2027, 3, 30), new Date(2027, 4, 31), new Date(2027, 5, 7)]) {
+      expect(getDaySchedule(date)).toEqual([]);
+      expect(getRotationDayNumber(date)).toBeNull();
+    }
+  });
+
+  it("matches the three adjusted May schedules", () => {
+    expect(getDaySchedule(new Date(2027, 4, 17)).filter((slot) => slot.type === "class").map((slot) => `${slot.label}:${slot.start}-${slot.end}`))
+      .toEqual(["E:8:10-9:10", "F:9:20-10:20", "G:10:30-11:30", "A:11:40-12:40", "B:1:15-2:15"]);
+    expect(getDaySchedule(new Date(2027, 4, 19), "underclassman").find((slot) => slot.label === "E")).toMatchObject({ start: "11:50", end: "12:20" });
+    expect(getDaySchedule(new Date(2027, 4, 19), "upperclassman").find((slot) => slot.label === "E")).toMatchObject({ start: "12:35", end: "1:05" });
+    expect(getDaySchedule(new Date(2027, 4, 20)).find((slot) => slot.label === "GA Graduation")).toMatchObject({ start: "3:00" });
+  });
+
+  it("matches both May exam-review days", () => {
+    expect(getBlocksForDate(new Date(2027, 4, 27))).toEqual(["A", "B", "C", "D", "E", "F", "G"]);
+    expect(getBlocksForDate(new Date(2027, 4, 28))).toEqual(["G", "F", "E", "D", "C", "B", "A"]);
+    expect(getDaySchedule(new Date(2027, 4, 28)).at(-1)).toMatchObject({ label: "A", start: "1:35", end: "2:15" });
+    expect(getRotationDayNumber(new Date(2027, 4, 27))).toBeNull();
+  });
+
+  it.each([
+    [1, "Math Exam", "English Exam"],
+    [2, "Science Exam", "Conflict Exams"],
+    [3, "Modern Languages & Classics Exam", "Computer Science Exam"],
+    [4, "History Exam", "Conflict Exams"],
+  ] as const)("matches June %i exams", (day, morning, afternoon) => {
+    expect(getDaySchedule(new Date(2027, 5, day))).toEqual([
+      { label: morning, start: "9:00", end: "11:00", type: "assembly" },
+      { label: afternoon, start: "1:00", end: "3:00", type: "assembly" },
+    ]);
+  });
+
+  it("matches the June 8 Exam Return/Last Day schedule", () => {
+    const schedule = getDaySchedule(new Date(2027, 5, 8));
+    expect(schedule.filter((slot) => slot.type === "class")).toHaveLength(7);
+    expect(schedule.find((slot) => slot.label === "A")).toMatchObject({ start: "8:10", end: "8:20" });
+    expect(schedule.find((slot) => slot.label === "G")).toMatchObject({ start: "10:10", end: "10:20" });
+    expect(schedule.find((slot) => slot.label === "US Closing Ceremony")).toMatchObject({ start: "11:00", end: "12:00" });
+  });
+});
+
 describe("Block rotation 2026-27", () => {
   it("Opening Day Sept 8, 2026 = A,B,C,D,E", () => {
     expect(getBlocksForDate(new Date(2026, 8, 8))).toEqual(["A", "B", "C", "D", "E"]);

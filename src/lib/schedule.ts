@@ -221,6 +221,13 @@ const DAY_NUMBER_OVERRIDES: Record<string, number | null> = {
   "2027-01-14": null,
   "2027-01-15": null,
   "2027-01-19": null,
+  "2027-05-27": null,
+  "2027-05-28": null,
+  "2027-06-01": null,
+  "2027-06-02": null,
+  "2027-06-03": null,
+  "2027-06-04": null,
+  "2027-06-08": null,
 };
 
 // Special-day overrides transcribed from the printed 2026–27 daily planner.
@@ -478,11 +485,101 @@ const DATE_OVERRIDES: Record<string, { blocks: Block[]; build: (lunchType: Class
     blocks: ["A", "B", "C", "D", "E"],
     build: (lunchType) => standardThursday(["A", "B", "C", "D", "E"], lunchType, true, "10:10"),
   },
-  // Tue June 8, 2027 — MS/US Closing Ceremony (last day of school)
-  "2027-06-08": {
+  "2027-04-15": {
+    blocks: ["E", "F", "G", "A", "B"],
+    build: (lunchType) => standardThursday(["E", "F", "G", "A", "B"], lunchType, true, "10:00"),
+  },
+  "2027-04-29": {
+    blocks: ["F", "G", "A", "B", "C"],
+    build: (lunchType) => standardThursday(["F", "G", "A", "B", "C"], lunchType, true, "10:10"),
+  },
+  "2027-05-17": {
+    blocks: ["E", "F", "G", "A", "B"],
+    build: (lunchType) => [
+      { label: "Morning Meeting", start: "7:45", end: "8:00", type: "advisory" },
+      ...standardFriday(["E", "F", "G", "A", "B"], lunchType).slice(1),
+      { label: "Senior Awards", start: "3:00", end: "4:00", type: "assembly" },
+      { label: "Senior Faculty Dinner", start: "5:00", end: "7:00", type: "assembly" },
+    ],
+  },
+  "2027-05-19": {
+    blocks: ["A", "B", "C", "D", "E"],
+    build: (lunchType) => [
+      { label: "Advisory", start: "8:45", end: "9:00", type: "advisory" },
+      { label: "A", start: "9:10", end: "9:40", type: "class", block: "A" },
+      { label: "B", start: "9:50", end: "10:20", type: "class", block: "B" },
+      { label: "C", start: "10:30", end: "11:00", type: "class", block: "C" },
+      { label: "D", start: "11:10", end: "11:40", type: "class", block: "D" },
+      ...(lunchType === "underclassman"
+        ? [
+            { label: "E", start: "11:50", end: "12:20", type: "class" as const, block: "E" as const },
+            { label: "Lunch", start: "12:30", end: "1:05", type: "lunch" as const },
+          ]
+        : [
+            { label: "Lunch", start: "11:40", end: "12:25", type: "lunch" as const },
+            { label: "E", start: "12:35", end: "1:05", type: "class" as const, block: "E" as const },
+          ]),
+      { label: "Graduation", start: "3:00", end: "4:30", type: "assembly" },
+    ],
+  },
+  "2027-05-20": {
+    blocks: ["F", "G", "A", "B", "C"],
+    build: (lunchType) => [
+      { label: "Advisory", start: "7:45", end: "8:00", type: "advisory" },
+      ...standardFriday(["F", "G", "A", "B", "C"], lunchType).slice(1),
+      { label: "GA Graduation", start: "3:00", end: "4:30", type: "assembly" },
+    ],
+  },
+  "2027-05-27": {
+    blocks: ["A", "B", "C", "D", "E", "F", "G"],
+    build: (lunchType) => examReview(["A", "B", "C", "D", "E", "F", "G"], lunchType),
+  },
+  "2027-05-28": {
+    blocks: ["G", "F", "E", "D", "C", "B", "A"],
+    build: (lunchType) => examReview(["G", "F", "E", "D", "C", "B", "A"], lunchType),
+  },
+  "2027-06-01": {
     blocks: [],
     build: () => [
+      { label: "Math Exam", start: "9:00", end: "11:00", type: "assembly" },
+      { label: "English Exam", start: "1:00", end: "3:00", type: "assembly" },
+    ],
+  },
+  "2027-06-02": {
+    blocks: [],
+    build: () => [
+      { label: "Science Exam", start: "9:00", end: "11:00", type: "assembly" },
+      { label: "Conflict Exams", start: "1:00", end: "3:00", type: "assembly" },
+    ],
+  },
+  "2027-06-03": {
+    blocks: [],
+    build: () => [
+      { label: "Modern Languages & Classics Exam", start: "9:00", end: "11:00", type: "assembly" },
+      { label: "Computer Science Exam", start: "1:00", end: "3:00", type: "assembly" },
+    ],
+  },
+  "2027-06-04": {
+    blocks: [],
+    build: () => [
+      { label: "History Exam", start: "9:00", end: "11:00", type: "assembly" },
+      { label: "Conflict Exams", start: "1:00", end: "3:00", type: "assembly" },
+    ],
+  },
+  // Tue June 8, 2027 — MS/US Closing Ceremony (last day of school)
+  "2027-06-08": {
+    blocks: ["A", "B", "C", "D", "E", "F", "G"],
+    build: () => [
+      { label: "Advisory", start: "7:45", end: "8:00", type: "advisory" },
+      ...(["A", "B", "C", "D", "E", "F", "G"] as Block[]).map((block, index) => ({
+        label: block,
+        start: ["8:10", "8:30", "8:50", "9:10", "9:30", "9:50", "10:10"][index],
+        end: ["8:20", "8:40", "9:00", "9:20", "9:40", "10:00", "10:20"][index],
+        type: "class" as const,
+        block,
+      })),
       { label: "US Closing Ceremony", start: "11:00", end: "12:00", type: "assembly" },
+      { label: "Junior Prom", start: "8:00", end: "11:00", type: "assembly" },
     ],
   },
 };

@@ -64,7 +64,7 @@ const CALENDAR_DATA: Record<string, SchoolDayInfo> = {
   "2027-05-31": { reason: "Memorial Day", type: "holiday" },
 
   // --- End of year: exams June 1–4, closing ceremony June 8 ---
-  ...range([2027, 6, 1], [2027, 6, 4], { reason: "Exam Week – No Regular Classes", type: "noschool" }),
+  ...range([2027, 6, 1], [2027, 6, 4], { reason: "US Exams", type: "early_dismissal" }),
   "2027-06-07": { reason: "No School", type: "noschool" },
 
   // --- Summer Break (June 9, 2027 onwards) ---
