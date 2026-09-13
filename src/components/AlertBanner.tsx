@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { CloudSnow } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getSchoolDayInfo, mergeDbCalendar } from "@/lib/schoolCalendar";
 
@@ -21,9 +22,13 @@ export function AlertBanner() {
 
   async function checkAlerts() {
     // Refresh DB calendar data
-    const { data: rows } = await supabase
+    const { data: rows, error } = await supabase
       .from("school_calendar")
       .select("date, reason, day_type");
+
+    if (error) {
+      console.warn("Live school alerts are unavailable; using the built-in calendar.", error.message);
+    }
 
     if (rows && rows.length > 0) {
       mergeDbCalendar(rows);
@@ -62,7 +67,7 @@ export function AlertBanner() {
 
   return (
     <div className="mx-5 mb-2 flex items-center gap-3 rounded-2xl bg-destructive/10 border border-destructive/20 px-4 py-3">
-      <span className="text-lg">🌨️</span>
+      <CloudSnow aria-hidden="true" className="h-5 w-5 shrink-0 text-destructive" />
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-destructive truncate">{alert.reason}</p>
         <p className="text-[11px] text-destructive/70">Check school communications for details</p>

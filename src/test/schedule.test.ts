@@ -119,6 +119,51 @@ describe("Printed planner: Nov 23 through Jan 29", () => {
     expect(jan28Under.find((slot) => slot.type === "lunch")).toMatchObject({ start: "12:15", end: "12:40" });
     expect(jan28Upper.find((slot) => slot.type === "lunch")).toMatchObject({ start: "11:20", end: "11:45" });
   });
+
+  it("matches each student's Thanksgiving early-dismissal lunch window", () => {
+    const under = getDaySchedule(new Date(2026, 10, 24), "underclassman");
+    const upper = getDaySchedule(new Date(2026, 10, 24), "upperclassman");
+    expect(under.find((slot) => slot.type === "lunch")).toMatchObject({ start: "11:55", end: "12:15" });
+    expect(upper.find((slot) => slot.type === "lunch")).toMatchObject({ start: "11:15", end: "11:35" });
+  });
+
+  it("matches each student's holiday-assembly lunch window", () => {
+    const under = getDaySchedule(new Date(2026, 11, 18), "underclassman");
+    const upper = getDaySchedule(new Date(2026, 11, 18), "upperclassman");
+    expect(under.find((slot) => slot.type === "lunch")).toMatchObject({ start: "11:35", end: "12:00" });
+    expect(upper.find((slot) => slot.type === "lunch")).toMatchObject({ start: "11:00", end: "11:25" });
+  });
+});
+
+describe("Schedule integrity", () => {
+  function minutes(time: string): number {
+    const [hours, minutes] = time.split(":").map(Number);
+    return (hours < 7 ? hours + 12 : hours) * 60 + minutes;
+  }
+
+  it("has valid, non-overlapping personal schedules throughout the school year", () => {
+    const date = new Date(2026, 8, 8);
+    const lastDay = new Date(2027, 5, 8);
+    while (date <= lastDay) {
+      for (const grade of ["underclassman", "upperclassman"] as const) {
+        const slots = getDaySchedule(date, grade);
+        for (let index = 0; index < slots.length; index += 1) {
+          expect(minutes(slots[index].end), `${date.toDateString()} ${slots[index].label}`).toBeGreaterThan(minutes(slots[index].start));
+          if (index > 0) {
+            expect(minutes(slots[index].start), `${date.toDateString()} ${slots[index].label}`).toBeGreaterThanOrEqual(minutes(slots[index - 1].end));
+          }
+        }
+      }
+      date.setDate(date.getDate() + 1);
+    }
+  });
+
+  it("uses the photographed adjusted Tuesday schedule on October 13", () => {
+    const schedule = getDaySchedule(new Date(2026, 9, 13));
+    expect(schedule.find((slot) => slot.label === "Assembly")).toMatchObject({ start: "10:00", end: "10:55" });
+    expect(schedule.filter((slot) => slot.type === "class").map((slot) => `${slot.label}:${slot.start}-${slot.end}`))
+      .toEqual(["E:8:10-8:55", "F:9:05-9:50", "G:11:05-11:55", "A:12:05-1:05", "B:1:40-2:40"]);
+  });
 });
 
 describe("Printed planner: Feb 1 through Apr 9", () => {

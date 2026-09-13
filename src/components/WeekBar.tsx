@@ -36,8 +36,11 @@ export function WeekBar({ selectedDate, onSelectDate }: WeekBarProps) {
 
         return (
           <button
+            type="button"
             key={i}
             onClick={() => onSelectDate(date)}
+            aria-pressed={isSelected}
+            aria-label={`${date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}${isToday ? ", today" : ""}`}
             className={`
               relative flex flex-1 flex-col items-center rounded-2xl py-2.5 transition-all
               ${isSelected && isToday

@@ -18,6 +18,7 @@ export default function SchedulePage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [editOpen, setEditOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<AppTab>("schedule");
+  const [calendarRevision, setCalendarRevision] = useState(0);
   const { data, updateBlockName, setClassType, setOnboarded, setBlockLunchOverride, resetAll } = useUserData();
 
   // Fetch DB calendar overrides on mount
@@ -25,9 +26,14 @@ export default function SchedulePage() {
     supabase
       .from("school_calendar")
       .select("date, reason, day_type")
-      .then(({ data: rows }) => {
+      .then(({ data: rows, error }) => {
+        if (error) {
+          console.warn("Live calendar updates are unavailable; using the built-in calendar.", error.message);
+          return;
+        }
         if (rows && rows.length > 0) {
           mergeDbCalendar(rows);
+          setCalendarRevision((revision) => revision + 1);
         }
       });
   }, []);
@@ -37,10 +43,10 @@ export default function SchedulePage() {
 
   const slots = useMemo(
     () => getDaySchedule(selectedDate, data.classType, data.blockLunchOverrides),
-    [selectedDate, data.classType, data.blockLunchOverrides]
+    [selectedDate, data.classType, data.blockLunchOverrides, calendarRevision]
   );
-  const blocks = useMemo(() => getBlocksForDate(selectedDate), [selectedDate]);
-  const dayNumber = useMemo(() => getRotationDayNumber(selectedDate), [selectedDate]);
+  const blocks = useMemo(() => getBlocksForDate(selectedDate), [selectedDate, calendarRevision]);
+  const dayNumber = useMemo(() => getRotationDayNumber(selectedDate), [selectedDate, calendarRevision]);
 
   const navigate = useCallback((delta: number) => {
     setSelectedDate((prev) => {
@@ -94,6 +100,7 @@ export default function SchedulePage() {
   const monthDay = selectedDate.toLocaleDateString("en-US", {
     month: "long",
     day: "numeric",
+    year: "numeric",
   });
 
   const noSchoolInfo = schoolInfo && schoolInfo.type !== "early_dismissal" && slots.length === 0 ? schoolInfo : null;
@@ -138,6 +145,7 @@ export default function SchedulePage() {
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setEditOpen(true)}
                 className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary transition-colors active:bg-border ml-3"
                 aria-label="Edit schedule"
@@ -151,18 +159,22 @@ export default function SchedulePage() {
           <div className="px-4 py-2">
             <div className="flex items-center gap-1">
               <button
+                type="button"
                 onClick={() => navigate(-7)}
                 className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full active:bg-secondary"
               >
+                <span className="sr-only">Previous week</span>
                 <ChevronLeft className="h-4 w-4 text-muted-foreground" />
               </button>
               <div className="flex-1">
                 <WeekBar selectedDate={selectedDate} onSelectDate={setSelectedDate} />
               </div>
               <button
+                type="button"
                 onClick={() => navigate(7)}
                 className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full active:bg-secondary"
               >
+                <span className="sr-only">Next week</span>
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </button>
             </div>
@@ -170,6 +182,7 @@ export default function SchedulePage() {
             {!isToday && (
               <div className="mt-1.5 flex justify-center">
                 <button
+                  type="button"
                   onClick={() => setSelectedDate(new Date())}
                   className="text-xs font-medium text-accent active:opacity-70"
                 >

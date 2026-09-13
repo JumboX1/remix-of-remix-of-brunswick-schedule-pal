@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X, RotateCcw } from "lucide-react";
 import { BLOCKS, Block, ClassType } from "@/lib/schedule";
 import { UserScheduleData, LunchOverride } from "@/hooks/useUserData";
@@ -23,6 +23,17 @@ export function EditScheduleSheet({
   onReset,
 }: EditScheduleSheetProps) {
   const [confirmReset, setConfirmReset] = useState(false);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    closeButtonRef.current?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open, onClose]);
 
   if (!open) return null;
 
@@ -32,7 +43,12 @@ export function EditScheduleSheet({
       <div className="absolute inset-0 bg-foreground/30 backdrop-blur-sm" onClick={onClose} />
 
       {/* Sheet */}
-      <div className="relative mt-auto flex max-h-[88vh] flex-col rounded-t-3xl bg-card shadow-2xl safe-bottom animate-in slide-in-from-bottom duration-300">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="edit-schedule-title"
+        className="relative mt-auto flex max-h-[88vh] flex-col rounded-t-3xl bg-card shadow-2xl safe-bottom animate-in slide-in-from-bottom duration-300"
+      >
         {/* Handle */}
         <div className="flex justify-center pt-3 pb-1">
           <div className="h-1 w-10 rounded-full bg-border" />
@@ -40,9 +56,12 @@ export function EditScheduleSheet({
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 pb-3">
-          <h2 className="text-xl">My Schedule</h2>
+          <h2 id="edit-schedule-title" className="text-xl">My Schedule</h2>
           <button
+            ref={closeButtonRef}
+            type="button"
             onClick={onClose}
+            aria-label="Close edit schedule"
             className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary active:bg-border"
           >
             <X className="h-4 w-4 text-foreground" />
@@ -59,6 +78,7 @@ export function EditScheduleSheet({
             <div className="flex rounded-2xl bg-secondary p-1">
               {(["underclassman", "upperclassman"] as ClassType[]).map((type) => (
                 <button
+                  type="button"
                   key={type}
                   onClick={() => onSetClassType(type)}
                   className={`flex-1 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
@@ -123,6 +143,7 @@ export function EditScheduleSheet({
                       <div className="flex rounded-xl bg-secondary p-0.5">
                         {(["default", "underclassman", "upperclassman"] as LunchOverride[]).map((opt) => (
                           <button
+                            type="button"
                             key={opt}
                             onClick={() => onSetBlockLunchOverride(block, opt)}
                             className={`flex-1 rounded-lg px-2 py-1.5 text-[11px] font-medium transition-all ${
@@ -150,6 +171,7 @@ export function EditScheduleSheet({
           <div className="pt-1">
             {!confirmReset ? (
               <button
+                type="button"
                 onClick={() => setConfirmReset(true)}
                 className="flex w-full items-center justify-center gap-2 rounded-xl border border-border px-4 py-3 text-sm text-muted-foreground transition-colors active:bg-secondary"
               >
@@ -159,6 +181,7 @@ export function EditScheduleSheet({
             ) : (
               <div className="flex gap-2">
                 <button
+                  type="button"
                   onClick={() => {
                     onReset();
                     setConfirmReset(false);
@@ -169,6 +192,7 @@ export function EditScheduleSheet({
                   Confirm Reset
                 </button>
                 <button
+                  type="button"
                   onClick={() => setConfirmReset(false)}
                   className="flex-1 rounded-xl border border-border px-4 py-3 text-sm"
                 >
