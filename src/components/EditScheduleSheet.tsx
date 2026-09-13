@@ -24,16 +24,21 @@ export function EditScheduleSheet({
 }: EditScheduleSheetProps) {
   const [confirmReset, setConfirmReset] = useState(false);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   useEffect(() => {
     if (!open) return;
+    // Only focus the close button when the sheet first opens, not on every
+    // parent re-render (typing in a field re-renders the parent, which used
+    // to re-run this effect and yank focus back to the X button).
     closeButtonRef.current?.focus();
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") onCloseRef.current();
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 
