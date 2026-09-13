@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getBlocksForDate, getDaySchedule } from "@/lib/schedule";
+import { getBlocksForDate, getDaySchedule, type Block } from "@/lib/schedule";
 import { isSchoolDay, getSchoolDayInfo } from "@/lib/schoolCalendar";
 
 describe("School calendar 2026-27", () => {
