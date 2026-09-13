@@ -8,7 +8,6 @@ export interface UserScheduleData {
   blockNames: Record<Block, string>;
   blockColors: Record<Block, string>;
   blockLunchOverrides: Record<Block, LunchOverride>;
-  studentName: string;
   onboarded: boolean;
 }
 

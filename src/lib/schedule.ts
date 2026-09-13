@@ -65,6 +65,23 @@ export function getRotationIndex(date: Date): number {
   return ((schoolDays % 7) + 7) % 7;
 }
 
+/** Planner-style day number (1-7) for a school day, or null when there's no school. */
+export function getRotationDayNumber(date: Date): number | null {
+  if (!isSchoolDay(date)) return null;
+  return getRotationIndex(date) + 1;
+}
+
+/** The next day with classes, searching up to 60 days ahead. */
+export function getNextSchoolDay(from: Date): Date | null {
+  const d = new Date(from);
+  d.setHours(0, 0, 0, 0);
+  for (let i = 0; i < 60; i++) {
+    d.setDate(d.getDate() + 1);
+    if (isSchoolDay(d)) return new Date(d);
+  }
+  return null;
+}
+
 function dateKey(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
