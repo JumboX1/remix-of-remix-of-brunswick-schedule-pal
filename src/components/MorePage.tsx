@@ -25,7 +25,7 @@ const SCHOOL_LINKS: LinkItem[] = [
     href: "https://my.brunswickschool.org/calendars/dining",
     icon: UtensilsCrossed,
     title: "Dining Calendar",
-    desc: "Full Flik menu for every division",
+    desc: "Full Flik menu for every day",
   },
 ];
 

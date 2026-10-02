@@ -318,7 +318,7 @@ export function LunchMenu() {
           <div className="flex items-start gap-2.5">
             <Leaf className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
             <p className="text-[12px] leading-relaxed text-muted-foreground">
-              Allergy meals available. Gluten-free options served daily — ask the dining staff.
+              Allergy meals available.
             </p>
           </div>
         </div>
