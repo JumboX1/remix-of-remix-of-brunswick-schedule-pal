@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { categorizeLunchItem, getLunchIcon } from "@/lib/lunchMenu";
-import { Carrot, CookingPot, Drumstick, Salad, Soup } from "lucide-react";
+import { Carrot, Cherry, CookingPot, Drumstick, Salad, Soup } from "lucide-react";
 
 describe("lunch menu classification", () => {
   it.each([
@@ -11,7 +11,7 @@ describe("lunch menu classification", () => {
     ["Baby Bok Choy", "side", Carrot],
     ["Roasted Butternut Squash", "side", Carrot],
     ["BBQ Chicken Legs", "main", Drumstick],
-    ["Seasonal Fruit, Yogurt, Granola", "salad", expect.any(Function)],
+    ["Seasonal Fruit, Yogurt, Granola", "salad", Cherry],
   ])("sorts and illustrates %s", (item, category, icon) => {
     expect(categorizeLunchItem(item)).toBe(category);
     expect(getLunchIcon(item)).toEqual(icon);

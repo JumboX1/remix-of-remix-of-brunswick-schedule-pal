@@ -1,54 +1,15 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import {
   CalendarDays, ChevronLeft, ChevronRight, ExternalLink, Leaf, Loader2, RefreshCw,
-  UtensilsCrossed, Soup, Drumstick, Pizza, Fish, Beef, Sandwich, Salad, Apple, Wheat,
-  Carrot, Egg, Cake, Cookie, Coffee, Milk, School, ClipboardList,
+  School, ClipboardList,
   type LucideIcon,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getSchoolDayInfo, isSchoolDay } from "@/lib/schoolCalendar";
+import { categorizeLunchItem, getLunchIcon } from "@/lib/lunchMenu";
 
 const CACHE_KEY = "brunswick-lunch-cache-v2";
 const DINING_URL = "https://my.brunswickschool.org/calendars/dining";
-
-const ICON_RULES: Array<[string[], LucideIcon]> = [
-  [["salad"], Salad],
-  [["soup", "chowder", "bisque", "stew", "chili", "ramen", "pho"], Soup],
-  [["pizza", "flatbread", "calzone"], Pizza],
-  [["salmon", "fish", "tuna", "cod", "shrimp", "seafood", "tilapia", "sushi"], Fish],
-  [["chicken", "wings", "nugget", "tender", "francese", "turkey"], Drumstick],
-  [["steak", "beef", "meatball", "pork", "lamb", "roast", "ribs", "bbq", "burger", "slider", "sausage", "brisket"], Beef],
-  [["sandwich", "sub", "panini", "hoagie", "wrap", "burrito", "taco", "quesadilla", "melt"], Sandwich],
-  [["salad", "caesar", "greens", "slaw"], Salad],
-  [["fruit", "apple", "berry", "melon"], Apple],
-  [["rice", "bread", "roll", "biscuit", "naan", "pita", "pasta", "penne", "noodle", "mac", "grain", "polenta", "risotto", "tortilla"], Wheat],
-  [["broccoli", "carrot", "zucchini", "vegetable", "veggie", "corn", "beans", "green", "spinach", "potato", "fries"], Carrot],
-  [["egg", "omelet", "frittata", "quiche"], Egg],
-  [["cookie", "brownie"], Cookie],
-  [["cake", "dessert", "pie", "pudding"], Cake],
-  [["yogurt", "milk", "smoothie", "parfait"], Milk],
-  [["coffee", "tea", "cocoa"], Coffee],
-];
-
-function getIcon(item: string): LucideIcon {
-  const lower = item.toLowerCase();
-  for (const [keys, Icon] of ICON_RULES) if (keys.some((k) => lower.includes(k))) return Icon;
-  return UtensilsCrossed;
-}
-
-type MenuCategory = "main" | "side" | "salad" | "other";
-const MAIN_KEYWORDS = ["chicken", "beef", "steak", "salmon", "fish", "pork", "burger", "pizza", "pasta", "sandwich", "taco", "wrap", "soup", "francese", "tuna", "ribs", "bbq", "panini", "turkey", "meatball", "chili", "burrito", "shrimp", "penne", "mac"];
-const SALAD_KEYWORDS = ["salad", "caesar", "greens", "fruit", "yogurt", "granola", "seasonal", "slaw"];
-const SIDE_KEYWORDS = ["rice", "bread", "fries", "potato", "polenta", "corn", "zucchini", "broccoli", "vegetable", "naan", "roll", "steamed", "sauteed", "mashed", "roasted", "beans", "chips"];
-
-function categorize(item: string): MenuCategory {
-  const lower = item.toLowerCase();
-  if (lower.includes("salad")) return "salad";
-  if (MAIN_KEYWORDS.some((k) => lower.includes(k))) return "main";
-  if (SALAD_KEYWORDS.some((k) => lower.includes(k))) return "salad";
-  if (SIDE_KEYWORDS.some((k) => lower.includes(k))) return "side";
-  return "other";
-}
 
 function toKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -74,7 +35,7 @@ function mondayOf(d: Date): Date {
 type MenuMap = Record<string, string[]>;
 
 function MenuItemRow({ item }: { item: string }) {
-  const Icon = getIcon(item);
+  const Icon = getLunchIcon(item);
   return (
     <li className="flex items-center gap-3.5 rounded-xl bg-card border border-border/70 px-4 py-3 shadow-sm transition-transform active:scale-[0.98]">
       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent/10">
@@ -188,7 +149,7 @@ export function LunchMenu() {
   const categorized = useMemo(() => {
     if (!items) return null;
     const groups = { main: [] as string[], side: [] as string[], salad: [] as string[], other: [] as string[] };
-    for (const item of items) groups[categorize(item)].push(item);
+    for (const item of items) groups[categorizeLunchItem(item)].push(item);
     const hasCategories = groups.main.length + groups.side.length + groups.salad.length > 0;
     return { ...groups, hasCategories };
   }, [items]);
