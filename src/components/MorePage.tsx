@@ -117,13 +117,23 @@ export function MorePage({ onOpenEditSchedule }: MorePageProps) {
           Everything you enter stays on this device. No account, no names.
         </p>
 
-        <footer className="mt-10 flex flex-col items-center gap-1.5 text-center">
-          <p className="text-xs text-muted-foreground">Built & maintained by Jack Wendell '27</p>
+        <footer className="mt-12 flex flex-col items-center text-center">
+          <div className="flex w-40 items-center gap-3 opacity-60" aria-hidden="true">
+            <span className="h-px flex-1 bg-border" />
+            <span className="h-1 w-1 rounded-full bg-border" />
+            <span className="h-px flex-1 bg-border" />
+          </div>
+          <p className="mt-4 text-[9px] font-semibold uppercase tracking-[0.22em] text-muted-foreground/70">
+            Built &amp; maintained by
+          </p>
+          <p className="mt-1 font-serif text-[17px] leading-none text-foreground/80">
+            Jack Wendell <span className="text-muted-foreground/80">'27</span>
+          </p>
           <a
             href="mailto:jwendell@brunswickschool.org"
-            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-accent transition-colors active:bg-secondary"
+            className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary/50 px-3.5 py-1.5 text-[11px] font-medium tracking-wide text-muted-foreground transition-all hover:text-accent active:scale-[0.98] active:bg-secondary"
           >
-            <Mail className="h-3.5 w-3.5" />
+            <Mail className="h-3 w-3 opacity-60" />
             jwendell@brunswickschool.org
           </a>
         </footer>
