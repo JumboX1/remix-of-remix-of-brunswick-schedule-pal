@@ -23,10 +23,10 @@ export function DayScheduleView({ slots, blockNames, isWeekend, selectedDate, cl
   // No school (non-weekend)
   if (!isWeekend && slots.length === 0 && schoolInfo && schoolInfo.type !== "early_dismissal") {
     return (
-      <div className="flex flex-col items-center justify-center py-16">
-        <p className="text-lg font-serif text-foreground">{schoolInfo.reason}</p>
-        <p className="mt-1 text-sm text-muted-foreground/60">
-          {schoolInfo.type === "break" ? "Enjoy your break" : "No school today"}
+      <div className="mt-2 flex flex-col items-center justify-center rounded-xl border border-border/70 bg-card px-6 py-14 text-center shadow-sm animate-page-in">
+        <p className="font-serif text-2xl text-foreground">{schoolInfo.reason}</p>
+        <p className="mt-1.5 text-sm text-muted-foreground">
+          {schoolInfo.type === "break" ? "Enjoy your break" : "No classes today"}
         </p>
       </div>
     );
@@ -47,89 +47,79 @@ export function DayScheduleView({ slots, blockNames, isWeekend, selectedDate, cl
   }
 
   return (
-    <div className="space-y-1.5">
-      {/* Early dismissal banner */}
+    <div key={selectedDate.toDateString()} className="space-y-2 animate-page-in">
       {schoolInfo?.type === "early_dismissal" && (
-        <div className="flex items-center gap-2 rounded-xl bg-accent/10 px-4 py-2.5 mb-1">
-          <p className="text-xs font-medium text-accent">{schoolInfo.reason}</p>
+        <div className="flex items-center gap-2 rounded-xl border border-accent/20 bg-accent/10 px-4 py-2.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+          <p className="text-xs font-semibold text-accent">{schoolInfo.reason}</p>
         </div>
       )}
 
-      {slots.map((slot, i) => {
+      {slots.map((slot) => {
         const className = slot.block ? blockNames[slot.block] : "";
         const isClass = slot.type === "class";
+        const isFilled = slot.type === "assembly" || slot.type === "advisory";
         const startMin = parseTime(slot.start);
         const endMin = parseTime(slot.end);
+        const duration = endMin - startMin;
         const isActive = isSameDay && currentMinutes >= startMin && currentMinutes < endMin;
         const isPast = isSameDay && currentMinutes >= endMin;
+        const progress = isActive ? Math.min(1, (currentMinutes - startMin) / Math.max(1, duration)) : 0;
 
         return (
           <div
             key={`${slot.label}-${slot.start}-${slot.end}`}
-            className={`flex items-stretch rounded-xl transition-all active:scale-[0.98] ${
+            className={`relative flex items-stretch overflow-hidden rounded-xl transition-all duration-300 active:scale-[0.98] ${
               slot.type === "assembly"
                 ? "bg-primary text-primary-foreground shadow-sm"
                 : slot.type === "advisory"
                 ? "bg-accent text-accent-foreground shadow-sm"
                 : slot.type === "lunch"
-                ? "bg-secondary"
-                : "bg-card border border-border shadow-sm"
-            } ${isActive ? "ring-2 ring-accent ring-offset-1 ring-offset-background scale-[1.01]" : ""} ${
+                ? "border border-dashed border-border bg-secondary/70"
+                : "border border-border/70 bg-card shadow-sm"
+            } ${isActive ? "ring-2 ring-accent ring-offset-2 ring-offset-background" : ""} ${
               isPast && !isActive ? "opacity-40" : ""
             }`}
           >
-            {/* Time column */}
-            <div className={`flex w-16 shrink-0 flex-col items-center justify-center py-3 ${
-              isClass ? "border-r border-border" : ""
-            }`}>
-              <span className={`text-[11px] font-medium tabular-nums ${
-                slot.type === "assembly" || slot.type === "advisory"
-                  ? "opacity-80"
-                  : "text-muted-foreground"
-              }`}>
+            <div className={`flex w-[4.25rem] shrink-0 flex-col items-center justify-center py-3 ${isClass ? "border-r border-border/70" : ""}`}>
+              <span className={`text-xs font-semibold tabular-nums ${isFilled ? "opacity-90" : "text-foreground/80"}`}>
                 {slot.start}
               </span>
-              <span className={`text-[10px] tabular-nums ${
-                slot.type === "assembly" || slot.type === "advisory"
-                  ? "opacity-50"
-                  : "text-muted-foreground/50"
-              }`}>
+              <span className={`text-[10px] tabular-nums ${isFilled ? "opacity-60" : "text-muted-foreground"}`}>
                 {slot.end}
               </span>
             </div>
 
-            {/* Content */}
             <div className="flex flex-1 items-center gap-3 px-3 py-3">
               {slot.block && (
-                <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${
-                  slot.type === "assembly" || slot.type === "advisory"
-                    ? "bg-white/15 text-inherit"
-                    : "bg-primary/10 text-primary"
+                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-bold ${
+                  isFilled ? "bg-primary-foreground/15" : isActive ? "bg-accent text-accent-foreground" : "bg-primary/10 text-primary"
                 }`}>
                   {slot.block}
                 </div>
               )}
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium leading-tight">
-                  {className || slot.label}
+                <p className="truncate text-[15px] font-semibold leading-tight">{className || slot.label}</p>
+                <p className={`mt-0.5 text-[11px] ${isFilled ? "opacity-70" : "text-muted-foreground"}`}>
+                  {className && isClass ? `Block ${slot.block} · ` : ""}
+                  {duration} min
                 </p>
-                {className && isClass && (
-                  <p className={`mt-0.5 text-[11px] ${
-                    slot.type === "assembly" || slot.type === "advisory"
-                      ? "opacity-60"
-                      : "text-muted-foreground"
-                  }`}>
-                    Block {slot.block}
-                  </p>
-                )}
               </div>
               {isActive && (
-                <div className="flex items-center gap-1.5">
-                  <div className="h-2 w-2 rounded-full bg-accent animate-pulse" />
-                  <span className="text-[10px] font-semibold text-accent">NOW</span>
-                </div>
+                <span className="flex items-center gap-1.5 rounded-full bg-accent/10 px-2 py-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
+                  <span className="text-[10px] font-bold tracking-wider text-accent">NOW</span>
+                </span>
               )}
             </div>
+
+            {isActive && (
+              <span
+                aria-hidden="true"
+                className="absolute bottom-0 left-0 h-[3px] bg-accent transition-all duration-1000"
+                style={{ width: `${progress * 100}%` }}
+              />
+            )}
           </div>
         );
       })}
