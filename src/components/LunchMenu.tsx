@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight, ExternalLink, Leaf, Loader2, UtensilsCrossed } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
+const CACHE_KEY = "brunswick-lunch-cache-v2";
 const DINING_URL = "https://my.brunswickschool.org/calendars/dining";
 
 // Expanded emoji map with many more keywords for better coverage
@@ -77,7 +78,7 @@ function MenuItemRow({ item, index }: { item: string; index: number }) {
 
   return (
     <div
-      className="group flex items-center gap-3.5 rounded-2xl bg-card border border-border/60 px-4 py-3.5 transition-all duration-200 hover:shadow-sm hover:border-border"
+      className="group flex items-center gap-3.5 rounded-xl bg-card border border-border/70 px-4 py-3 shadow-sm transition-transform active:scale-[0.98]"
       style={{ animationDelay: `${index * 40}ms` }}
     >
       {emoji ? (
@@ -116,15 +117,36 @@ export function LunchMenu() {
   const [error, setError] = useState<string | null>(null);
 
   const fetchMenu = useCallback(async () => {
-    setLoading(true);
     setError(null);
+    let hadCache = false;
+    try {
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        applyEvents(JSON.parse(cached));
+        hadCache = true;
+        setLoading(false);
+      }
+    } catch { /* ignore bad cache */ }
+    if (!hadCache) setLoading(true);
     try {
       const { data, error: fnError } = await supabase.functions.invoke("fetch-lunch-menu");
       if (fnError) throw fnError;
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify(data?.events ?? [])); } catch { /* storage full */ }
+      applyEvents(data?.events ?? []);
+    } catch (e) {
+      console.error("Failed to fetch lunch menu:", e);
+      if (!hadCache) setError("Couldn't load menu");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  function applyEvents(events: Array<{ date: string; items: string[] }>) {
+    {
 
       const map: MenuMap = {};
       const closed = new Set<string>();
-      for (const evt of (data?.events ?? []) as Array<{ date: string; items: string[] }>) {
+      for (const evt of events) {
         const isClosed = evt.items.length === 1 && evt.items[0].toUpperCase().includes("SCHOOL CLOSED");
         if (isClosed) {
           closed.add(evt.date);
@@ -134,13 +156,8 @@ export function LunchMenu() {
       }
       setMenuData(map);
       setClosedDates(closed);
-    } catch (e) {
-      console.error("Failed to fetch lunch menu:", e);
-      setError("Couldn't load menu");
-    } finally {
-      setLoading(false);
     }
-  }, []);
+  }
 
   useEffect(() => {
     fetchMenu();
@@ -181,10 +198,11 @@ export function LunchMenu() {
   }, [items]);
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex flex-1 flex-col animate-page-in">
       {/* Header */}
       <header className="px-5 pb-1 pt-4">
-        <h1 className="text-2xl leading-tight font-serif">Lunch</h1>
+        <h1 className="text-[28px] leading-tight">Lunch</h1>
+        <p className="mt-0.5 text-sm text-muted-foreground">Upper School · Flik Dining</p>
       </header>
 
       {/* Day Navigation */}
@@ -235,7 +253,7 @@ export function LunchMenu() {
             <p className="text-xs text-muted-foreground">Loading menu…</p>
           </div>
         ) : error ? (
-          <div className="rounded-2xl bg-destructive/8 border border-destructive/15 p-5 text-center mt-2">
+          <div className="rounded-xl bg-destructive/8 border border-destructive/15 p-5 text-center mt-2">
             <p className="text-sm font-medium text-destructive">{error}</p>
             <button
                 type="button"
@@ -246,7 +264,7 @@ export function LunchMenu() {
             </button>
           </div>
         ) : categorized && items && items.length > 0 ? (
-          <div className="space-y-5 mt-1">
+          <div key={dateKey} className="space-y-5 mt-1 animate-page-in">
             {categorized.hasCategories ? (
               <>
                 <MenuSection title="Entrées" items={categorized.mains} startIndex={0} />
@@ -288,7 +306,7 @@ export function LunchMenu() {
             }
             const showWeekNotice = !isWeekend && !isClosed && inCurrentWeek && !weekHasAnyMenu;
             return (
-              <div className="rounded-2xl bg-card border border-border/60 p-8 text-center mt-2">
+              <div className="rounded-xl bg-card border border-border/60 p-8 text-center mt-2">
                  <span aria-hidden="true" className="text-3xl">
                   {isWeekend ? "🛋️" : isClosed ? "🏫" : "📋"}
                 </span>
@@ -317,7 +335,7 @@ export function LunchMenu() {
           href={DINING_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex w-full items-center justify-between rounded-2xl bg-primary px-5 py-4 text-primary-foreground active:opacity-90 transition-opacity"
+          className="flex w-full items-center justify-between rounded-xl bg-primary px-5 py-4 text-primary-foreground active:opacity-90 transition-opacity"
         >
           <div className="flex items-center gap-3.5">
             <CalendarDays aria-hidden="true" className="h-5 w-5" />
@@ -330,7 +348,7 @@ export function LunchMenu() {
         </a>
 
         {/* Note */}
-        <div className="mt-3 rounded-2xl bg-secondary/50 p-4">
+        <div className="mt-3 rounded-xl bg-secondary/50 p-4">
           <div className="flex items-start gap-2.5">
             <Leaf className="mt-0.5 h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
             <p className="text-[11px] text-muted-foreground/70 leading-relaxed">
