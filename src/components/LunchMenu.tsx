@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import {
   CalendarDays, ChevronLeft, ChevronRight, ExternalLink, Leaf, Loader2, RefreshCw,
   UtensilsCrossed, Soup, Drumstick, Pizza, Fish, Beef, Sandwich, Salad, Apple, Wheat,
-  Carrot, Egg, Cake, Cookie, Coffee, Milk, Sun, School, ClipboardList,
+  Carrot, Egg, Cake, Cookie, Coffee, Milk, School, ClipboardList,
   type LucideIcon,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +12,7 @@ const CACHE_KEY = "brunswick-lunch-cache-v2";
 const DINING_URL = "https://my.brunswickschool.org/calendars/dining";
 
 const ICON_RULES: Array<[string[], LucideIcon]> = [
+  [["salad"], Salad],
   [["soup", "chowder", "bisque", "stew", "chili", "ramen", "pho"], Soup],
   [["pizza", "flatbread", "calzone"], Pizza],
   [["salmon", "fish", "tuna", "cod", "shrimp", "seafood", "tilapia", "sushi"], Fish],
@@ -42,6 +43,7 @@ const SIDE_KEYWORDS = ["rice", "bread", "fries", "potato", "polenta", "corn", "z
 
 function categorize(item: string): MenuCategory {
   const lower = item.toLowerCase();
+  if (lower.includes("salad")) return "salad";
   if (MAIN_KEYWORDS.some((k) => lower.includes(k))) return "main";
   if (SALAD_KEYWORDS.some((k) => lower.includes(k))) return "salad";
   if (SIDE_KEYWORDS.some((k) => lower.includes(k))) return "side";
