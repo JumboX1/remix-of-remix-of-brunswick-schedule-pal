@@ -1,64 +1,52 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { CalendarDays, ChevronLeft, ChevronRight, ExternalLink, Leaf, Loader2, UtensilsCrossed } from "lucide-react";
+import {
+  CalendarDays, ChevronLeft, ChevronRight, ExternalLink, Leaf, Loader2, RefreshCw,
+  UtensilsCrossed, Soup, Drumstick, Pizza, Fish, Beef, Sandwich, Salad, Apple, Wheat,
+  Carrot, Egg, Cake, Cookie, Coffee, Milk, School, ClipboardList,
+  type LucideIcon,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { getSchoolDayInfo, isSchoolDay } from "@/lib/schoolCalendar";
 
 const CACHE_KEY = "brunswick-lunch-cache-v2";
 const DINING_URL = "https://my.brunswickschool.org/calendars/dining";
 
-// Expanded emoji map with many more keywords for better coverage
-const ITEM_EMOJIS: Record<string, string> = {
-  soup: "🍜", chowder: "🍜", bisque: "🍜", stew: "🍜",
-  chicken: "🍗", wings: "🍗", nugget: "🍗", tender: "🍗", francese: "🍗",
-  rice: "🍚",
-  pizza: "🍕", flatbread: "🍕",
-  pasta: "🍝", penne: "🍝", spaghetti: "🍝", rigatoni: "🍝", mac: "🍝", marinara: "🍝", alfredo: "🍝",
-  salmon: "🐟", fish: "🐟", tuna: "🐟", cod: "🐟", shrimp: "🦐", seafood: "🦐",
-  steak: "🥩", beef: "🥩", meatball: "🥩", pork: "🥩", lamb: "🥩", roast: "🥩",
-  sandwich: "🥪", sub: "🥪", panini: "🥪", hoagie: "🥪",
-  burger: "🍔", slider: "🍔",
-  fries: "🍟", potato: "🥔", mashed: "🥔",
-  salad: "🥗", caesar: "🥗", grain: "🥗", greens: "🥗", slaw: "🥗",
-  fruit: "🍎", apple: "🍎", berry: "🍓",
-  bread: "🍞", roll: "🍞", biscuit: "🍞", toast: "🍞",
-  naan: "🫓", pita: "🫓", tortilla: "🫓",
-  taco: "🌮", burrito: "🌯", wrap: "🌯", quesadilla: "🌮",
-  yogurt: "🥛", smoothie: "🥛", milk: "🥛",
-  granola: "🥣", cereal: "🥣", oatmeal: "🥣",
-  cheese: "🧀", parmesan: "🧀",
-  egg: "🍳", omelet: "🍳", frittata: "🍳",
-  corn: "🌽", broccoli: "🥦", broccolini: "🥦", zucchini: "🥒", vegetable: "🥬",
-  carrot: "🥕", beans: "🫘", lentil: "🫘",
-  cake: "🍰", cookie: "🍪", dessert: "🍰", brownie: "🍫",
-  polenta: "🧈", risotto: "🍚",
-  curry: "🍛", tikka: "🍛", teriyaki: "🍛",
-  dumpling: "🥟", gyoza: "🥟", wonton: "🥟",
-  sushi: "🍣",
-  sausage: "🌭",
-  pancake: "🥞", waffle: "🧇",
-  pretzel: "🥨",
-  pie: "🥧",
-};
+const ICON_RULES: Array<[string[], LucideIcon]> = [
+  [["salad"], Salad],
+  [["soup", "chowder", "bisque", "stew", "chili", "ramen", "pho"], Soup],
+  [["pizza", "flatbread", "calzone"], Pizza],
+  [["salmon", "fish", "tuna", "cod", "shrimp", "seafood", "tilapia", "sushi"], Fish],
+  [["chicken", "wings", "nugget", "tender", "francese", "turkey"], Drumstick],
+  [["steak", "beef", "meatball", "pork", "lamb", "roast", "ribs", "bbq", "burger", "slider", "sausage", "brisket"], Beef],
+  [["sandwich", "sub", "panini", "hoagie", "wrap", "burrito", "taco", "quesadilla", "melt"], Sandwich],
+  [["salad", "caesar", "greens", "slaw"], Salad],
+  [["fruit", "apple", "berry", "melon"], Apple],
+  [["rice", "bread", "roll", "biscuit", "naan", "pita", "pasta", "penne", "noodle", "mac", "grain", "polenta", "risotto", "tortilla"], Wheat],
+  [["broccoli", "carrot", "zucchini", "vegetable", "veggie", "corn", "beans", "green", "spinach", "potato", "fries"], Carrot],
+  [["egg", "omelet", "frittata", "quiche"], Egg],
+  [["cookie", "brownie"], Cookie],
+  [["cake", "dessert", "pie", "pudding"], Cake],
+  [["yogurt", "milk", "smoothie", "parfait"], Milk],
+  [["coffee", "tea", "cocoa"], Coffee],
+];
 
-function getEmoji(item: string): string | null {
+function getIcon(item: string): LucideIcon {
   const lower = item.toLowerCase();
-  for (const [key, emoji] of Object.entries(ITEM_EMOJIS)) {
-    if (lower.includes(key)) return emoji;
-  }
-  return null;
+  for (const [keys, Icon] of ICON_RULES) if (keys.some((k) => lower.includes(k))) return Icon;
+  return UtensilsCrossed;
 }
 
-// Categorize items intelligently
 type MenuCategory = "main" | "side" | "salad" | "other";
-
-const SIDE_KEYWORDS = ["rice", "bread", "fries", "potato", "polenta", "corn", "zucchini", "broccoli", "broccolini", "vegetable", "garlic bread", "naan", "roll", "steamed", "sauteed", "mashed", "roasted"];
-const SALAD_KEYWORDS = ["salad", "caesar", "grain", "greens", "fruit", "yogurt", "granola", "seasonal"];
-const MAIN_KEYWORDS = ["chicken", "beef", "steak", "salmon", "fish", "pork", "burger", "pizza", "pasta", "sandwich", "taco", "wrap", "soup", "francese", "tuna"];
+const MAIN_KEYWORDS = ["chicken", "beef", "steak", "salmon", "fish", "pork", "burger", "pizza", "pasta", "sandwich", "taco", "wrap", "soup", "francese", "tuna", "ribs", "bbq", "panini", "turkey", "meatball", "chili", "burrito", "shrimp", "penne", "mac"];
+const SALAD_KEYWORDS = ["salad", "caesar", "greens", "fruit", "yogurt", "granola", "seasonal", "slaw"];
+const SIDE_KEYWORDS = ["rice", "bread", "fries", "potato", "polenta", "corn", "zucchini", "broccoli", "vegetable", "naan", "roll", "steamed", "sauteed", "mashed", "roasted", "beans", "chips"];
 
 function categorize(item: string): MenuCategory {
   const lower = item.toLowerCase();
-  if (MAIN_KEYWORDS.some(k => lower.includes(k))) return "main";
-  if (SALAD_KEYWORDS.some(k => lower.includes(k))) return "salad";
-  if (SIDE_KEYWORDS.some(k => lower.includes(k))) return "side";
+  if (lower.includes("salad")) return "salad";
+  if (MAIN_KEYWORDS.some((k) => lower.includes(k))) return "main";
+  if (SALAD_KEYWORDS.some((k) => lower.includes(k))) return "salad";
+  if (SIDE_KEYWORDS.some((k) => lower.includes(k))) return "side";
   return "other";
 }
 
@@ -66,55 +54,81 @@ function toKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-function formatDate(d: Date): string {
-  return d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+const isWeekend = (d: Date) => d.getDay() === 0 || d.getDay() === 6;
+
+/** Today on weekdays; the upcoming Monday on weekends. */
+function defaultDate(): Date {
+  const d = new Date();
+  d.setHours(12, 0, 0, 0);
+  while (isWeekend(d)) d.setDate(d.getDate() + 1);
+  return d;
+}
+
+function mondayOf(d: Date): Date {
+  const m = new Date(d);
+  m.setHours(12, 0, 0, 0);
+  m.setDate(m.getDate() - ((m.getDay() + 6) % 7));
+  return m;
 }
 
 type MenuMap = Record<string, string[]>;
-type ClosedSet = Set<string>;
 
-function MenuItemRow({ item, index }: { item: string; index: number }) {
-  const emoji = getEmoji(item);
-
+function MenuItemRow({ item }: { item: string }) {
+  const Icon = getIcon(item);
   return (
-    <div
-      className="group flex items-center gap-3.5 rounded-xl bg-card border border-border/70 px-4 py-3 shadow-sm transition-transform active:scale-[0.98]"
-      style={{ animationDelay: `${index * 40}ms` }}
-    >
-      {emoji ? (
-        <span className="text-lg shrink-0 w-7 text-center">{emoji}</span>
-      ) : (
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/10">
-          <UtensilsCrossed className="h-3.5 w-3.5 text-accent" />
-        </span>
-      )}
+    <li className="flex items-center gap-3.5 rounded-xl bg-card border border-border/70 px-4 py-3 shadow-sm transition-transform active:scale-[0.98]">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent/10">
+        <Icon aria-hidden="true" className="h-4 w-4 text-accent" />
+      </span>
       <span className="text-[14px] font-medium leading-snug">{item}</span>
-    </div>
+    </li>
   );
 }
 
-function MenuSection({ title, items, startIndex }: { title: string; items: string[]; startIndex: number }) {
+function MenuSection({ title, items }: { title: string; items: string[] }) {
   if (items.length === 0) return null;
   return (
-    <div>
-      <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/70">
-        {title}
-      </p>
-      <div className="space-y-1.5">
-        {items.map((item, i) => (
-          <MenuItemRow key={i} item={item} index={startIndex + i} />
-        ))}
-      </div>
+    <section>
+      <h2 className="mb-2 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/70">{title}</h2>
+      <ul className="space-y-1.5">
+        {items.map((item, i) => <MenuItemRow key={`${item}-${i}`} item={item} />)}
+      </ul>
+    </section>
+  );
+}
+
+function EmptyState({ icon: Icon, title, body }: { icon: LucideIcon; title: string; body: string }) {
+  return (
+    <div className="mt-2 rounded-xl border border-border/60 bg-card p-8 text-center shadow-sm">
+      <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-secondary">
+        <Icon aria-hidden="true" className="h-5 w-5 text-muted-foreground" />
+      </span>
+      <p className="mt-3 text-sm font-semibold">{title}</p>
+      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{body}</p>
     </div>
   );
 }
 
 export function LunchMenu() {
   const [menuData, setMenuData] = useState<MenuMap>({});
-  const [closedDates, setClosedDates] = useState<ClosedSet>(new Set());
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [closedDates, setClosedDates] = useState<Set<string>>(new Set());
+  const [selectedDate, setSelectedDate] = useState<Date>(defaultDate);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const applyEvents = useCallback((events: Array<{ date: string; items: string[] }>) => {
+    const map: MenuMap = {};
+    const closed = new Set<string>();
+    for (const evt of events ?? []) {
+      if (!evt?.date || !Array.isArray(evt.items)) continue;
+      const isClosed = evt.items.length === 1 && evt.items[0].toUpperCase().includes("CLOSED");
+      if (isClosed) closed.add(evt.date);
+      else if (evt.items.length > 0) map[evt.date] = evt.items;
+    }
+    setMenuData(map);
+    setClosedDates(closed);
+  }, []);
 
   const fetchMenu = useCallback(async () => {
     setError(null);
@@ -128,234 +142,198 @@ export function LunchMenu() {
       }
     } catch { /* ignore bad cache */ }
     if (!hadCache) setLoading(true);
+    setRefreshing(true);
     try {
       const { data, error: fnError } = await supabase.functions.invoke("fetch-lunch-menu");
       if (fnError) throw fnError;
-      try { localStorage.setItem(CACHE_KEY, JSON.stringify(data?.events ?? [])); } catch { /* storage full */ }
-      applyEvents(data?.events ?? []);
+      const events = data?.events ?? [];
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify(events)); } catch { /* storage full */ }
+      applyEvents(events);
     } catch (e) {
       console.error("Failed to fetch lunch menu:", e);
-      if (!hadCache) setError("Couldn't load menu");
+      if (!hadCache) setError("Couldn't load the menu");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  }, []);
+  }, [applyEvents]);
 
-  function applyEvents(events: Array<{ date: string; items: string[] }>) {
-    {
+  useEffect(() => { fetchMenu(); }, [fetchMenu]);
 
-      const map: MenuMap = {};
-      const closed = new Set<string>();
-      for (const evt of events) {
-        const isClosed = evt.items.length === 1 && evt.items[0].toUpperCase().includes("SCHOOL CLOSED");
-        if (isClosed) {
-          closed.add(evt.date);
-        } else if (evt.items.length > 0) {
-          map[evt.date] = evt.items;
-        }
-      }
-      setMenuData(map);
-      setClosedDates(closed);
-    }
-  }
-
-  useEffect(() => {
-    fetchMenu();
-  }, [fetchMenu]);
-
-  const navigate = useCallback((delta: number) => {
+  // Step by school weekday, skipping Saturdays & Sundays
+  const step = useCallback((delta: number) => {
     setSelectedDate((prev) => {
       const next = new Date(prev);
-      next.setDate(next.getDate() + delta);
+      do next.setDate(next.getDate() + delta); while (isWeekend(next));
       return next;
     });
+    navigator.vibrate?.(8);
   }, []);
 
   const dateKey = toKey(selectedDate);
   const items = menuData[dateKey];
-  const today = new Date();
-  const isToday = toKey(today) === dateKey;
+  const todayKey = toKey(defaultDate());
+  const isDefault = dateKey === todayKey;
+  const realToday = toKey(new Date()) === dateKey;
 
-  // Categorize menu items
+  const week = useMemo(() => {
+    const mon = mondayOf(selectedDate);
+    return Array.from({ length: 5 }, (_, i) => {
+      const d = new Date(mon);
+      d.setDate(mon.getDate() + i);
+      return d;
+    });
+  }, [selectedDate]);
+
   const categorized = useMemo(() => {
     if (!items) return null;
-    const mains: string[] = [];
-    const sides: string[] = [];
-    const salads: string[] = [];
-    const others: string[] = [];
-
-    for (const item of items) {
-      const cat = categorize(item);
-      if (cat === "main") mains.push(item);
-      else if (cat === "side") sides.push(item);
-      else if (cat === "salad") salads.push(item);
-      else others.push(item);
-    }
-
-    // If everything ended up in "other", just show as a flat list
-    const hasCategories = mains.length > 0 || sides.length > 0 || salads.length > 0;
-    return { mains, sides, salads, others, hasCategories };
+    const groups = { main: [] as string[], side: [] as string[], salad: [] as string[], other: [] as string[] };
+    for (const item of items) groups[categorize(item)].push(item);
+    const hasCategories = groups.main.length + groups.side.length + groups.salad.length > 0;
+    return { ...groups, hasCategories };
   }, [items]);
+
+  const weekHasAnyMenu = week.some((d) => menuData[toKey(d)]);
+
+  function renderEmpty() {
+    const info = getSchoolDayInfo(selectedDate);
+    if (closedDates.has(dateKey) || !isSchoolDay(selectedDate)) {
+      return <EmptyState icon={School} title="No School" body={info?.reason ? `${info.reason} — no lunch served` : "School is closed — no lunch served"} />;
+    }
+    if (!weekHasAnyMenu) {
+      return <EmptyState icon={ClipboardList} title="Menu Not Posted Yet" body="Brunswick has not posted lunch listings for this week yet" />;
+    }
+    return <EmptyState icon={ClipboardList} title="No Menu Listed" body="Brunswick hasn't posted a menu for this day" />;
+  }
 
   return (
     <div className="flex flex-1 flex-col animate-page-in">
-      {/* Header */}
-      <header className="px-5 pb-1 pt-4">
-        <h1 className="text-[28px] leading-tight">Lunch</h1>
-        <p className="mt-0.5 text-sm text-muted-foreground">Upper School · Flik Dining</p>
+      <header className="flex items-end justify-between px-5 pb-1 pt-4">
+        <div>
+          <h1 className="text-[28px] leading-tight">Lunch</h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">Upper School · Flik Dining</p>
+        </div>
+        <button
+          type="button"
+          onClick={fetchMenu}
+          aria-label="Refresh menu"
+          className="mb-1 flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-transform active:scale-[0.92] active:bg-secondary"
+        >
+          <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+        </button>
       </header>
 
-      {/* Day Navigation */}
-      <div className="px-4 py-2">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            aria-label="Previous day"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full active:bg-secondary transition-colors"
-          >
+      {/* Week strip */}
+      <div className="px-4 pt-2">
+        <div className="flex items-center gap-1">
+          <button type="button" onClick={() => step(-5)} aria-label="Previous week"
+            className="flex h-9 w-7 shrink-0 items-center justify-center rounded-full active:bg-secondary">
             <ChevronLeft className="h-4 w-4 text-muted-foreground" />
           </button>
-          <div className="flex-1 text-center">
-            <p className="text-sm font-semibold tracking-tight">{formatDate(selectedDate)}</p>
-            {isToday && (
-              <p className="text-[10px] text-accent font-bold tracking-widest mt-0.5">TODAY</p>
-            )}
+          <div className="grid flex-1 grid-cols-5 gap-1.5">
+            {week.map((d) => {
+              const k = toKey(d);
+              const selected = k === dateKey;
+              const has = !!menuData[k];
+              const off = closedDates.has(k) || !isSchoolDay(d);
+              const isNow = k === toKey(new Date());
+              return (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={() => { setSelectedDate(d); navigator.vibrate?.(8); }}
+                  aria-label={d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+                  aria-pressed={selected}
+                  className={`flex flex-col items-center rounded-xl py-2 transition-all active:scale-[0.96] ${
+                    selected ? "bg-primary text-primary-foreground shadow-sm" : "bg-card border border-border/60"
+                  } ${off && !selected ? "opacity-40" : ""}`}
+                >
+                  <span className={`text-[10px] font-semibold uppercase tracking-wider ${selected ? "opacity-70" : "text-muted-foreground"}`}>
+                    {d.toLocaleDateString("en-US", { weekday: "short" })}
+                  </span>
+                  <span className={`text-base font-semibold leading-tight ${isNow && !selected ? "text-accent" : ""}`}>{d.getDate()}</span>
+                  <span className={`mt-0.5 h-1 w-1 rounded-full ${has ? (selected ? "bg-primary-foreground" : "bg-accent") : "bg-transparent"}`} />
+                </button>
+              );
+            })}
           </div>
-          <button
-            type="button"
-            onClick={() => navigate(1)}
-            aria-label="Next day"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full active:bg-secondary transition-colors"
-          >
+          <button type="button" onClick={() => step(5)} aria-label="Next week"
+            className="flex h-9 w-7 shrink-0 items-center justify-center rounded-full active:bg-secondary">
             <ChevronRight className="h-4 w-4 text-muted-foreground" />
           </button>
         </div>
 
-        {!isToday && (
-          <div className="mt-1.5 flex justify-center">
-            <button
-              type="button"
-              onClick={() => setSelectedDate(new Date())}
-              className="text-xs font-semibold text-accent active:opacity-70 transition-opacity"
-            >
-              Back to today
+        <div className="mt-3 flex items-center justify-between px-1">
+          <p className="text-sm font-semibold tracking-tight">
+            {selectedDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+            {realToday && <span className="ml-2 text-[10px] font-bold tracking-widest text-accent">TODAY</span>}
+          </p>
+          {!isDefault && (
+            <button type="button" onClick={() => setSelectedDate(defaultDate())}
+              className="rounded-full px-2.5 py-1 text-xs font-semibold text-accent active:bg-accent/10">
+              {isWeekend(new Date()) ? "Next week" : "Today"}
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto px-5 pb-24 no-scrollbar">
+      <div className="flex-1 overflow-y-auto px-5 pb-24 pt-3 no-scrollbar">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-16 gap-3">
-            <Loader2 className="h-5 w-5 animate-spin text-accent/60" />
-            <p className="text-xs text-muted-foreground">Loading menu…</p>
+          <div className="space-y-1.5" aria-label="Loading menu">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center gap-3.5 rounded-xl border border-border/50 bg-card px-4 py-3">
+                <span className="h-8 w-8 animate-pulse rounded-full bg-secondary" />
+                <span className="h-3 animate-pulse rounded bg-secondary" style={{ width: `${55 - i * 8}%` }} />
+              </div>
+            ))}
+            <p className="flex items-center justify-center gap-2 pt-2 text-xs text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin" /> Loading menu…
+            </p>
           </div>
         ) : error ? (
-          <div className="rounded-xl bg-destructive/8 border border-destructive/15 p-5 text-center mt-2">
+          <div className="rounded-xl border border-destructive/15 bg-destructive/5 p-5 text-center">
             <p className="text-sm font-medium text-destructive">{error}</p>
-            <button
-                type="button"
-              onClick={fetchMenu}
-              className="mt-2.5 text-xs font-semibold text-accent active:opacity-70"
-            >
+            <button type="button" onClick={fetchMenu} className="mt-2.5 text-xs font-semibold text-accent active:opacity-70">
               Try again
             </button>
           </div>
         ) : categorized && items && items.length > 0 ? (
-          <div key={dateKey} className="space-y-5 mt-1 animate-page-in">
+          <div key={dateKey} className="space-y-5 animate-page-in">
             {categorized.hasCategories ? (
               <>
-                <MenuSection title="Entrées" items={categorized.mains} startIndex={0} />
-                <MenuSection title="Sides" items={categorized.sides} startIndex={categorized.mains.length} />
-                <MenuSection title="Salad & Fresh" items={categorized.salads} startIndex={categorized.mains.length + categorized.sides.length} />
-                {categorized.others.length > 0 && (
-                  <MenuSection title="Also Serving" items={categorized.others} startIndex={categorized.mains.length + categorized.sides.length + categorized.salads.length} />
-                )}
+                <MenuSection title="Entrées" items={categorized.main} />
+                <MenuSection title="Sides" items={categorized.side} />
+                <MenuSection title="Salad & Fresh" items={categorized.salad} />
+                <MenuSection title="Also Serving" items={categorized.other} />
               </>
             ) : (
-              <div>
-                <p className="mb-2.5 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/70">
-                  Menu
-                </p>
-                <div className="space-y-1.5">
-                  {items.map((item, i) => (
-                    <MenuItemRow key={i} item={item} index={i} />
-                  ))}
-                </div>
-              </div>
+              <MenuSection title="Menu" items={items} />
             )}
           </div>
         ) : (
-          (() => {
-            const isWeekend = selectedDate.getDay() === 0 || selectedDate.getDay() === 6;
-            const isClosed = closedDates.has(dateKey);
-            // Check if selectedDate is in the same week (Sun-Sat) as today and no menus exist for any weekday this week
-            const weekStart = new Date(today);
-            weekStart.setHours(0, 0, 0, 0);
-            weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-            const weekEnd = new Date(weekStart);
-            weekEnd.setDate(weekEnd.getDate() + 6);
-            const inCurrentWeek = selectedDate >= weekStart && selectedDate <= weekEnd;
-            let weekHasAnyMenu = false;
-            for (let i = 0; i < 7; i++) {
-              const d = new Date(weekStart);
-              d.setDate(d.getDate() + i);
-              if (menuData[toKey(d)]) { weekHasAnyMenu = true; break; }
-            }
-            const showWeekNotice = !isWeekend && !isClosed && inCurrentWeek && !weekHasAnyMenu;
-            return (
-              <div className="rounded-xl bg-card border border-border/60 p-8 text-center mt-2">
-                 <span aria-hidden="true" className="text-3xl">
-                  {isWeekend ? "🛋️" : isClosed ? "🏫" : "📋"}
-                </span>
-                <p className="mt-3 text-sm font-semibold">
-                  {showWeekNotice ? "Menu Not Posted Yet" : "No Menu Available"}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                  {isWeekend
-                    ? "No lunch on weekends"
-                    : isClosed
-                    ? "School closed — no lunch today"
-                    : showWeekNotice
-                    ? "Brunswick has not posted lunch listings for this week yet"
-                    : "Menu not posted yet for this day"}
-                </p>
-              </div>
-            );
-          })()
+          <div key={dateKey} className="animate-page-in">{renderEmpty()}</div>
         )}
 
-        {/* Spacer */}
-        <div className="h-4" />
-
-        {/* Full calendar link */}
-        <a
-          href={DINING_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex w-full items-center justify-between rounded-xl bg-primary px-5 py-4 text-primary-foreground active:opacity-90 transition-opacity"
-        >
-          <div className="flex items-center gap-3.5">
-            <CalendarDays aria-hidden="true" className="h-5 w-5" />
-            <div>
-              <p className="text-sm font-semibold tracking-tight">Full Calendar</p>
-              <p className="text-xs opacity-50 mt-0.5">Opens in browser</p>
-            </div>
-          </div>
-          <ExternalLink className="h-4 w-4 opacity-50" />
-        </a>
-
-        {/* Note */}
-        <div className="mt-3 rounded-xl bg-secondary/50 p-4">
+        <div className="mt-4 rounded-xl bg-secondary/50 p-4">
           <div className="flex items-start gap-2.5">
-            <Leaf className="mt-0.5 h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
-            <p className="text-[11px] text-muted-foreground/70 leading-relaxed">
-              Menu sourced from Brunswick dining calendar. Gluten-free &amp; allergy meals available daily.
+            <Leaf className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
+            <p className="text-[12px] leading-relaxed text-muted-foreground">
+              Allergy meals available. Gluten-free options served daily — ask the dining staff.
             </p>
           </div>
         </div>
+
+        <a href={DINING_URL} target="_blank" rel="noopener noreferrer"
+          className="mt-3 flex w-full items-center justify-between rounded-xl bg-primary px-5 py-4 text-primary-foreground shadow-sm transition-transform active:scale-[0.98]">
+          <div className="flex items-center gap-3.5">
+            <CalendarDays aria-hidden="true" className="h-5 w-5" />
+            <div>
+              <p className="text-sm font-semibold tracking-tight">Full Dining Calendar</p>
+              <p className="mt-0.5 text-xs opacity-60">Opens in browser</p>
+            </div>
+          </div>
+          <ExternalLink className="h-4 w-4 opacity-60" />
+        </a>
       </div>
     </div>
   );
