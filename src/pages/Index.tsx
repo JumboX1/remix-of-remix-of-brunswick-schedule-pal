@@ -133,11 +133,6 @@ export default function SchedulePage() {
                 <div className="mt-0.5 flex items-center gap-2">
                   <p className="text-sm text-muted-foreground font-sans truncate">
                     {subtitle}
-                    {blocks.length > 0 && (
-                      <span className="ml-2 text-xs tracking-wider text-muted-foreground/70">
-                        {blocks.join(" · ")}
-                      </span>
-                    )}
                   </p>
                   {dayNumber && (
                     <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">

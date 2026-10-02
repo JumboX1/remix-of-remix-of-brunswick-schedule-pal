@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight, ExternalLink, Leaf, Loader2, UtensilsCrossed } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
+const CACHE_KEY = "brunswick-lunch-cache-v2";
 const DINING_URL = "https://my.brunswickschool.org/calendars/dining";
 
 // Expanded emoji map with many more keywords for better coverage
@@ -116,15 +117,36 @@ export function LunchMenu() {
   const [error, setError] = useState<string | null>(null);
 
   const fetchMenu = useCallback(async () => {
-    setLoading(true);
     setError(null);
+    let hadCache = false;
+    try {
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        applyEvents(JSON.parse(cached));
+        hadCache = true;
+        setLoading(false);
+      }
+    } catch { /* ignore bad cache */ }
+    if (!hadCache) setLoading(true);
     try {
       const { data, error: fnError } = await supabase.functions.invoke("fetch-lunch-menu");
       if (fnError) throw fnError;
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify(data?.events ?? [])); } catch { /* storage full */ }
+      applyEvents(data?.events ?? []);
+    } catch (e) {
+      console.error("Failed to fetch lunch menu:", e);
+      if (!hadCache) setError("Couldn't load menu");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  function applyEvents(events: Array<{ date: string; items: string[] }>) {
+    {
 
       const map: MenuMap = {};
       const closed = new Set<string>();
-      for (const evt of (data?.events ?? []) as Array<{ date: string; items: string[] }>) {
+      for (const evt of events) {
         const isClosed = evt.items.length === 1 && evt.items[0].toUpperCase().includes("SCHOOL CLOSED");
         if (isClosed) {
           closed.add(evt.date);
@@ -134,13 +156,8 @@ export function LunchMenu() {
       }
       setMenuData(map);
       setClosedDates(closed);
-    } catch (e) {
-      console.error("Failed to fetch lunch menu:", e);
-      setError("Couldn't load menu");
-    } finally {
-      setLoading(false);
     }
-  }, []);
+  }
 
   useEffect(() => {
     fetchMenu();
