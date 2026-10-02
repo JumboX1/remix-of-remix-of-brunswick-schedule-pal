@@ -123,11 +123,11 @@ export function MorePage({ onOpenEditSchedule }: MorePageProps) {
             <span className="h-1 w-1 rounded-full bg-border" />
             <span className="h-px flex-1 bg-border" />
           </div>
-          <p className="mt-3 text-[8.5px] font-semibold uppercase tracking-[0.22em] text-muted-foreground/60">
+          <p className="mt-3 text-[8.5px] font-semibold uppercase tracking-[0.22em] text-muted-foreground/50">
             Built &amp; maintained by
           </p>
-          <p className="mt-1.5 font-serif text-[16px] leading-none text-foreground/75">
-            Jack Wendell <span className="text-muted-foreground/75">'27</span>
+          <p className="mt-1.5 font-serif text-[15px] leading-none text-foreground/65">
+            Jack Wendell <span className="text-muted-foreground/60">'27</span>
           </p>
           <a
             href="mailto:jwendell@brunswickschool.org"
