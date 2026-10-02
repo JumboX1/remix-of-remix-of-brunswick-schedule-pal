@@ -155,7 +155,7 @@ function WeekendPreview({
   return (
     <div className="space-y-4">
       <div className="text-center py-3">
-        <p className="text-sm font-medium text-muted-foreground">Next Week</p>
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Next week</p>
       </div>
 
       {weekDays.map((date, i) => {
@@ -168,7 +168,7 @@ function WeekendPreview({
 
         if (noSchool || !isSchoolDay(date)) {
           return (
-          <div key={toDateKey(date)} className="rounded-xl border border-border bg-card px-4 py-3">
+          <div key={toDateKey(date)} className="rounded-xl border border-dashed border-border bg-secondary/50 px-4 py-3">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-semibold text-foreground">{DAY_NAMES[date.getDay()]}</p>
@@ -181,7 +181,7 @@ function WeekendPreview({
         }
 
         return (
-          <div key={toDateKey(date)} className="rounded-xl border border-border bg-card overflow-hidden">
+          <div key={toDateKey(date)} className="rounded-xl border border-border/70 bg-card overflow-hidden shadow-sm">
             <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-secondary/30">
               <div>
                 <p className="text-sm font-semibold text-foreground">{DAY_NAMES[date.getDay()]}</p>

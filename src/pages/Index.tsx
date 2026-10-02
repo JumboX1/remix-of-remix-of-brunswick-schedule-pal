@@ -129,7 +129,7 @@ export default function SchedulePage() {
           <header className="px-5 pb-1 pt-4">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
-                <h1 className="text-2xl leading-tight truncate">{greeting}</h1>
+                <h1 className="text-[28px] leading-tight truncate">{greeting}</h1>
                 <div className="mt-0.5 flex items-center gap-2">
                   <p className="text-sm text-muted-foreground font-sans truncate">
                     {subtitle}
@@ -196,7 +196,7 @@ export default function SchedulePage() {
                 <button
                   type="button"
                   onClick={() => setSelectedDate(new Date())}
-                  className="text-xs font-medium text-accent active:opacity-70"
+                  className="rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent transition-transform active:scale-95"
                 >
                   Back to today
                 </button>
