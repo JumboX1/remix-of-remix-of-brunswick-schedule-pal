@@ -118,20 +118,20 @@ export function MorePage({ onOpenEditSchedule }: MorePageProps) {
         </p>
 
         <footer className="mt-10 flex flex-col items-center text-center">
-          <div className="flex w-32 items-center gap-3 opacity-50" aria-hidden="true">
+          <div className="flex w-36 items-center gap-3 opacity-55" aria-hidden="true">
             <span className="h-px flex-1 bg-border" />
             <span className="h-1 w-1 rounded-full bg-border" />
             <span className="h-px flex-1 bg-border" />
           </div>
-          <p className="mt-3 text-[8px] font-semibold uppercase tracking-[0.22em] text-muted-foreground/60">
+          <p className="mt-3 text-[8.5px] font-semibold uppercase tracking-[0.22em] text-muted-foreground/60">
             Built &amp; maintained by
           </p>
-          <p className="mt-1.5 font-serif text-[15px] leading-none text-foreground/70">
-            Jack Wendell <span className="text-muted-foreground/70">'27</span>
+          <p className="mt-1.5 font-serif text-[16px] leading-none text-foreground/75">
+            Jack Wendell <span className="text-muted-foreground/75">'27</span>
           </p>
           <a
             href="mailto:jwendell@brunswickschool.org"
-            className="mt-2.5 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-medium tracking-wide text-muted-foreground/80 transition-colors hover:text-accent active:scale-[0.98]"
+            className="mt-2.5 inline-flex items-center gap-1.5 rounded-full border border-border/70 px-3 py-1 text-[10.5px] font-medium tracking-wide text-muted-foreground transition-colors hover:text-accent active:scale-[0.98]"
           >
             <Mail className="h-3 w-3 opacity-50" />
             jwendell@brunswickschool.org
