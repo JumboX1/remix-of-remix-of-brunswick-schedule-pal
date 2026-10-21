@@ -4,7 +4,8 @@
  *
  * Sourced from: https://my.brunswickschool.org/calendars/main-calendar (Upper School tab)
  * The edge function "sync-calendar" runs daily at 4 AM ET to refresh
- * data in the school_calendar table. This file provides a local fallback.
+ * data in the school_calendar table. Opening Lunch refreshes a device-local
+ * snapshot; the schedule itself never needs an online request.
  */
 
 export interface SchoolDayInfo {
@@ -73,19 +74,48 @@ const CALENDAR_DATA: Record<string, SchoolDayInfo> = {
 
 // Runtime override from DB
 let dbOverrides: Record<string, SchoolDayInfo> = {};
+export const CALENDAR_CACHE_KEY = "brunswick-calendar-cache-v1";
+const calendarListeners = new Set<() => void>();
+
+export function subscribeCalendar(listener: () => void): () => void {
+  calendarListeners.add(listener);
+  return () => { calendarListeners.delete(listener); };
+}
 
 export function mergeDbCalendar(
   rows: Array<{ date: string; reason: string; day_type: string }>
 ) {
   const overrides: Record<string, SchoolDayInfo> = {};
   for (const row of rows) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(row?.date) || typeof row.reason !== "string" ||
+      !["break", "holiday", "noschool", "early_dismissal"].includes(row.day_type)) continue;
     overrides[row.date] = {
       reason: row.reason,
       type: row.day_type as SchoolDayInfo["type"],
     };
   }
   dbOverrides = overrides;
+  for (const listener of calendarListeners) listener();
 }
+
+export function saveCalendarSnapshot(rows: Array<{ date: string; reason: string; day_type: string }>): void {
+  mergeDbCalendar(rows);
+  try {
+    localStorage.setItem(CALENDAR_CACHE_KEY, JSON.stringify(Object.entries(dbOverrides).map(([date, info]) =>
+      ({ date, reason: info.reason, day_type: info.type }))));
+  } catch { /* Device storage may be unavailable; built-in calendar still works. */ }
+}
+
+export function restoreCalendarSnapshot(): void {
+  try {
+    const cached = localStorage.getItem(CALENDAR_CACHE_KEY);
+    if (!cached) return;
+    const rows: unknown = JSON.parse(cached);
+    if (Array.isArray(rows)) mergeDbCalendar(rows);
+  } catch { /* Ignore damaged snapshots and keep the built-in calendar. */ }
+}
+
+restoreCalendarSnapshot();
 
 function toKey(date: Date): string {
   const y = date.getFullYear();
