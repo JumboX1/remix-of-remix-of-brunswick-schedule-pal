@@ -28,7 +28,6 @@ export default defineConfig(({ mode }) => ({
       navigateFallback: undefined,
       // Keep the precached shell off navigation URLs so HTML is NetworkFirst.
       directoryIndex: null,
-      cleanURLs: false,
       ignoreURLParametersMatching: [],
       manifestTransforms: [async (entries) => ({
         manifest: entries.map((entry) => entry.url === "index.html"
