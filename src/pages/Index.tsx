@@ -12,8 +12,7 @@ import { WhatsNextTicker } from "@/components/WhatsNextTicker";
 import { BottomTabs, AppTab } from "@/components/BottomTabs";
 import { useUserData } from "@/hooks/useUserData";
 import { getDaySchedule, getBlocksForDate, getRotationDayNumber, ClassType } from "@/lib/schedule";
-import { getSchoolDayInfo, mergeDbCalendar } from "@/lib/schoolCalendar";
-import { supabase } from "@/integrations/supabase/client";
+import { getSchoolDayInfo, subscribeCalendar } from "@/lib/schoolCalendar";
 
 export default function SchedulePage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -23,22 +22,8 @@ export default function SchedulePage() {
   const [calendarRevision, setCalendarRevision] = useState(0);
   const { data, updateBlockName, setClassType, setOnboarded, setBlockLunchOverride, resetAll } = useUserData();
 
-  // Fetch DB calendar overrides on mount
-  useEffect(() => {
-    supabase
-      .from("school_calendar")
-      .select("date, reason, day_type")
-      .then(({ data: rows, error }) => {
-        if (error) {
-          console.warn("Live calendar updates are unavailable; using the built-in calendar.", error.message);
-          return;
-        }
-        if (rows && rows.length > 0) {
-          mergeDbCalendar(rows);
-          setCalendarRevision((revision) => revision + 1);
-        }
-      });
-  }, []);
+  // Device-local calendar; Lunch is the sole live school-data entry point.
+  useEffect(() => subscribeCalendar(() => setCalendarRevision((revision) => revision + 1)), []);
 
   const dayOfWeek = selectedDate.getDay();
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;

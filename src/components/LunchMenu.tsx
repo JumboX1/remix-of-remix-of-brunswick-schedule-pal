@@ -1,11 +1,12 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import {
   CalendarDays, ChevronLeft, ChevronRight, ExternalLink, Leaf, Loader2, RefreshCw,
-  School, ClipboardList,
+  School, ClipboardList, WifiOff,
   type LucideIcon,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { getSchoolDayInfo, isSchoolDay } from "@/lib/schoolCalendar";
+import { getSchoolDayInfo, isSchoolDay, saveCalendarSnapshot } from "@/lib/schoolCalendar";
+import { fetchLiveLunch, parseLunchEvents } from "@/lib/lunchData";
+import { Button } from "@/components/ui/button";
 import { categorizeLunchItem, getLunchIcon } from "@/lib/lunchMenu";
 
 const CACHE_KEY = "brunswick-lunch-cache-v2";
@@ -77,6 +78,9 @@ export function LunchMenu() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [offline, setOffline] = useState(() => !navigator.onLine);
+  const [savedMenu, setSavedMenu] = useState(false);
+  const requestRef = useRef<AbortController | null>(null);
 
   const applyEvents = useCallback((events: Array<{ date: string; items: string[] }>) => {
     const map: MenuMap = {};
@@ -92,34 +96,69 @@ export function LunchMenu() {
   }, []);
 
   const fetchMenu = useCallback(async () => {
+    requestRef.current?.abort();
+    const controller = new AbortController();
+    requestRef.current = controller;
     setError(null);
     let hadCache = false;
     try {
       const cached = localStorage.getItem(CACHE_KEY);
       if (cached) {
-        applyEvents(JSON.parse(cached));
+        applyEvents(parseLunchEvents(JSON.parse(cached)));
         hadCache = true;
         setLoading(false);
       }
     } catch { /* ignore bad cache */ }
     if (!hadCache) setLoading(true);
-    setRefreshing(true);
-    try {
-      const { data, error: fnError } = await supabase.functions.invoke("fetch-lunch-menu");
-      if (fnError) throw fnError;
-      const events = data?.events ?? [];
-      try { localStorage.setItem(CACHE_KEY, JSON.stringify(events)); } catch { /* storage full */ }
-      applyEvents(events);
-    } catch (e) {
-      console.error("Failed to fetch lunch menu:", e);
-      if (!hadCache) setError("Couldn't load the menu");
-    } finally {
+    if (!navigator.onLine) {
+      setOffline(true);
+      setSavedMenu(hadCache);
       setLoading(false);
       setRefreshing(false);
+      if (!hadCache) setError("Connect to the internet to view lunch menus.");
+      return;
+    }
+    setOffline(false);
+    setRefreshing(true);
+    const timeout = window.setTimeout(() => controller.abort(), 15000);
+    try {
+      const { menu, calendar } = await fetchLiveLunch(controller.signal);
+      if (calendar.data && !calendar.error) saveCalendarSnapshot(calendar.data);
+      const { data, error: fnError } = menu;
+      if (fnError) throw fnError;
+      const events = parseLunchEvents(data?.events);
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify(events)); } catch { /* storage full */ }
+      applyEvents(events);
+      setSavedMenu(false);
+    } catch (e) {
+      if (requestRef.current !== controller) return;
+      setSavedMenu(hadCache);
+      if (!hadCache) setError(navigator.onLine ? "Couldn't load the menu. Check your connection and try again." : "Connect to the internet to view lunch menus.");
+    } finally {
+      window.clearTimeout(timeout);
+      if (requestRef.current === controller) {
+        setLoading(false);
+        setRefreshing(false);
+      }
     }
   }, [applyEvents]);
 
-  useEffect(() => { fetchMenu(); }, [fetchMenu]);
+  useEffect(() => {
+    void fetchMenu();
+    const onOnline = () => { setOffline(false); void fetchMenu(); };
+    const onOffline = () => {
+      setOffline(true);
+      requestRef.current?.abort();
+    };
+    window.addEventListener("online", onOnline);
+    window.addEventListener("offline", onOffline);
+    return () => {
+      requestRef.current?.abort();
+      requestRef.current = null;
+      window.removeEventListener("online", onOnline);
+      window.removeEventListener("offline", onOffline);
+    };
+  }, [fetchMenu]);
 
   // Step by school weekday, skipping Saturdays & Sundays
   const step = useCallback((delta: number) => {
@@ -174,14 +213,17 @@ export function LunchMenu() {
           <h1 className="text-[28px] leading-tight">Lunch</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">Upper School · Flik Dining</p>
         </div>
-        <button
+        <Button
+          variant="ghost"
+          size="icon"
           type="button"
           onClick={fetchMenu}
+          disabled={refreshing}
           aria-label="Refresh menu"
           className="mb-1 flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-transform active:scale-[0.92] active:bg-secondary"
         >
           <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-        </button>
+        </Button>
       </header>
 
       {/* Week strip */}
@@ -239,6 +281,12 @@ export function LunchMenu() {
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 pb-24 pt-3 no-scrollbar">
+        {(offline || savedMenu) && !loading && (
+          <p role="status" className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
+            {offline && <WifiOff aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />}
+            {savedMenu ? (offline ? "Offline · Showing saved menus" : "Couldn't update · Showing saved menus") : "You're offline"}
+          </p>
+        )}
         {loading ? (
           <div className="space-y-1.5" aria-label="Loading menu">
             {[0, 1, 2, 3].map((i) => (
@@ -254,9 +302,9 @@ export function LunchMenu() {
         ) : error ? (
           <div className="rounded-xl border border-destructive/15 bg-destructive/5 p-5 text-center">
             <p className="text-sm font-medium text-destructive">{error}</p>
-            <button type="button" onClick={fetchMenu} className="mt-2.5 text-xs font-semibold text-accent active:opacity-70">
+            <Button variant="link" type="button" onClick={fetchMenu} className="mt-2.5 text-xs font-semibold text-accent active:opacity-70">
               Try again
-            </button>
+            </Button>
           </div>
         ) : categorized && items && items.length > 0 ? (
           <div key={dateKey} className="space-y-5 animate-page-in">

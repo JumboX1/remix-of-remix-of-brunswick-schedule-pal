@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { CloudSnow } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { getSchoolDayInfo, mergeDbCalendar } from "@/lib/schoolCalendar";
+import { getSchoolDayInfo, subscribeCalendar } from "@/lib/schoolCalendar";
 
 interface AlertInfo {
   reason: string;
@@ -17,23 +16,11 @@ export function AlertBanner() {
 
     // Re-check every 5 minutes for live updates (covers 4 AM rule etc.)
     const interval = setInterval(checkAlerts, 5 * 60 * 1000);
-    return () => clearInterval(interval);
+    const unsubscribe = subscribeCalendar(checkAlerts);
+    return () => { clearInterval(interval); unsubscribe(); };
   }, []);
 
-  async function checkAlerts() {
-    // Refresh DB calendar data
-    const { data: rows, error } = await supabase
-      .from("school_calendar")
-      .select("date, reason, day_type");
-
-    if (error) {
-      console.warn("Live school alerts are unavailable; using the built-in calendar.", error.message);
-    }
-
-    if (rows && rows.length > 0) {
-      mergeDbCalendar(rows);
-    }
-
+  function checkAlerts() {
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
