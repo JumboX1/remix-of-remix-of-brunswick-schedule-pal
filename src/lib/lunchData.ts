@@ -11,11 +11,11 @@ export function parseLunchEvents(value: unknown): LunchEvent[] {
 export async function fetchLiveLunch(signal: AbortSignal) {
   if (!navigator.onLine) throw new Error("offline");
   const { supabase } = await import("@/integrations/supabase/client");
-  signal.throwIfAborted();
+  if (signal.aborted) throw new DOMException("Request cancelled", "AbortError");
   const [menu, calendar] = await Promise.all([
     supabase.functions.invoke("fetch-lunch-menu", { signal }),
     supabase.from("school_calendar").select("date, reason, day_type").abortSignal(signal),
   ]);
-  signal.throwIfAborted();
+  if (signal.aborted) throw new DOMException("Request cancelled", "AbortError");
   return { menu, calendar };
 }

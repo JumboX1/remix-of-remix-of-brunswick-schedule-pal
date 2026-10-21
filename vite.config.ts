@@ -4,6 +4,9 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
 
+// Workbox serializes these callbacks into the worker, where self is defined.
+declare const self: { location: { origin: string } };
+
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
@@ -23,6 +26,15 @@ export default defineConfig(({ mode }) => ({
     workbox: {
       globPatterns: ["**/*.{js,css,html,woff,woff2,webp,png,ico}"],
       navigateFallback: undefined,
+      // Keep the precached shell off navigation URLs so HTML is NetworkFirst.
+      directoryIndex: null,
+      cleanURLs: false,
+      ignoreURLParametersMatching: [],
+      manifestTransforms: [async (entries) => ({
+        manifest: entries.map((entry) => entry.url === "index.html"
+          ? { ...entry, url: "index.html?__offline_shell=1" } : entry),
+        warnings: [],
+      })],
       cleanupOutdatedCaches: true,
       runtimeCaching: [
         {
@@ -34,7 +46,7 @@ export default defineConfig(({ mode }) => ({
             networkTimeoutSeconds: 3,
             cacheableResponse: { statuses: [200] },
             expiration: { maxEntries: 10 },
-            precacheFallback: { fallbackURL: "/index.html" },
+            precacheFallback: { fallbackURL: "/index.html?__offline_shell=1" },
           },
         },
         {
