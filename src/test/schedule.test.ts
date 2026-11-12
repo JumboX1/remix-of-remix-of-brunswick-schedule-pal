@@ -392,7 +392,7 @@ describe("Printed planner: Sept 14 through Nov 20", () => {
     [new Date(2026, 9, 1), "Assembly", "10:00", "10:55"],
     [new Date(2026, 9, 13), "Assembly", "10:00", "10:55"],
     [new Date(2026, 10, 5), "Assembly", "10:00", "10:55"],
-    [new Date(2026, 10, 12), "Brunswick Film Trust", "8:30", "11:00"],
+    [new Date(2026, 10, 12), "Brunswick Trust Film", "8:30", "11:00"],
   ] as const)("matches special event on %s", (date, label, start, end) => {
     expect(getDaySchedule(date).find((slot) => slot.label === label)).toMatchObject({ start, end });
   });
@@ -401,9 +401,9 @@ describe("Printed planner: Sept 14 through Nov 20", () => {
     expect(getDaySchedule(new Date(2026, 10, 12), grade).some((slot) => slot.type === "advisory")).toBe(false);
   });
 
-  it.each(["underclassman", "upperclassman"] as const)("November 12 starts with Film Trust at 8:30 for %s", (grade) => {
+  it.each(["underclassman", "upperclassman"] as const)("November 12 starts with Trust Film at 8:30 for %s", (grade) => {
     expect(getDaySchedule(new Date(2026, 10, 12), grade)[0]).toMatchObject({
-      label: "Brunswick Film Trust", start: "8:30", end: "11:00", type: "assembly",
+      label: "Brunswick Trust Film", start: "8:30", end: "11:00", type: "assembly",
     });
   });
 

@@ -314,7 +314,7 @@ const DATE_OVERRIDES: Record<string, { blocks: Block[]; build: (lunchType: Class
     blocks: ["C", "D", "E", "F", "G"],
     build: (lunchType) => {
       const slots: ScheduleSlot[] = [
-        { label: "Brunswick Film Trust", start: "8:30", end: "11:00", type: "assembly" },
+        { label: "Brunswick Trust Film", start: "8:30", end: "11:00", type: "assembly" },
         { label: "E", start: "11:05", end: "11:55", type: "class", block: "E" },
       ];
       if (lunchType === "underclassman") {
